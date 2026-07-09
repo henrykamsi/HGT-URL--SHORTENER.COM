@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HGT URL Shortener</title>
+  
+  <link rel="manifest" href="/manifest.json">
+  
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --bg-main: #ffffff;
+      --bg-glass: rgba(255, 255, 255, 0.45);
+      --border-glass: rgba(255, 255, 255, 0.25);
+      --text-main: #0c101a;
+      --text-muted: #4a5568;
+      --accent: #00aaff;
+      --accent-hover: #0088cc;
+      --shadow: rgba(0, 0, 0, 0.05);
+    }
+
+    [data-theme="dark"] {
+      --bg-main: #050a14;
+      --bg-glass: rgba(13, 20, 38, 0.65);
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #00aaff;
+      --accent-hover: #33bbff;
+      --shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      padding-bottom: 80px;
+    }
+
+    /* Header UI Elements */
+    .global-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-glass);
+      z-index: 900;
+      box-shadow: 0 4px 6px var(--shadow);
+    }
+
+    .header-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--text-main);
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+
+    .header-btn:hover { background: var(--border-glass); }
+
+    /* Offline-Resilient Continuous Loop Text Element */
+    .marquee-container {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      background: var(--accent);
+      color: #ffffff;
+      overflow: hidden;
+      white-space: nowrap;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      z-index: 890;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: inset 0 -2px 5px rgba(0,0,0,0.1);
+    }
+
+    .marquee-content {
+      display: inline-block;
+      padding-left: 100%;
+      animation: marquee-scroll 25s linear infinite;
+    }
+
+    @keyframes marquee-scroll {
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-100%, 0, 0); }
+    }
+
+    /* Main Flow Container App Wrapper */
+    .app-container {
+      margin-top: 110px;
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .view-card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 20px 40px var(--shadow);
+    }
+
+    .hidden { display: none !important; }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .label-wrapper {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .help-dot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      background: var(--border-glass);
+      border: 1px solid var(--text-muted);
+      border-radius: 50%;
+      font-size: 0.75rem;
+      margin-left: 8px;
+      cursor: help;
+      color: var(--text-muted);
+      position: relative;
+    }
+
+    .help-dot::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 130%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: #0c101a;
+      color: #ffffff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      white-space: normal;
+      width: 200px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .help-dot:hover::after, .help-dot:focus::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) scale(1);
+    }
+
+    input[type="text"], input[type="email"], input[type="password"], input[type="url"] {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(0, 0, 0, 0.03);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      color: var(--text-main);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    [data-theme="dark"] input { background: rgba(255, 255, 255, 0.03); }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.2); }
+
+    .primary-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 170, 255, 0.3);
+    }
+
+    .primary-btn:hover { background: var(--accent-hover); }
+
+    .secondary-btn {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .secondary-btn:hover { background: var(--border-glass); }
+
+    .oauth-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 20px 0;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    .oauth-divider::before, .oauth-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border-glass);
+    }
+    .oauth-divider:not(:empty)::before { margin-right: .5em; }
+    .oauth-divider:not(:empty)::after { margin-left: .5em; }
+
+    .google-btn {
+      width: 100%;
+      padding: 12px;
+      background: #ffffff;
+      color: #757575;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    [data-theme="dark"] .google-btn { background: #131314; color: #e3e3e3; border: 1px solid #8e918f; }
+
+    /* Circular Loader */
+    .radial-progress-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .circular-svg { width: 80px; height: 80px; transform: rotate(-90deg); }
+    .circular-bg-ring { fill: none; stroke: var(--border-glass); stroke-width: 8; }
+    .circular-progress-bar {
+      fill: none; stroke: var(--accent); stroke-width: 8;
+      stroke-dasharray: 226.19; stroke-dashoffset: 226.19; stroke-linecap: round;
+      animation: progress-loop 2s linear infinite;
+    }
+
+    @keyframes progress-loop {
+      0% { stroke-dashoffset: 226.19; transform: rotate(0deg); }
+      50% { stroke-dashoffset: 50; transform: rotate(180deg); }
+      100% { stroke-dashoffset: 226.19; transform: rotate(360deg); }
+    }
+
+    /* Modals & Overlays */
+    .fullscreen-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(5, 10, 20, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 2000;
+      display: flex; justify-content: center; align-items: center;
+      padding: 20px;
+    }
+
+    .overlay-content {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: 28px;
+      max-width: 440px; width: 100%;
+      padding: 35px; text-align: center;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      transform: scale(0.95);
+      animation: modal-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes modal-pop { to { transform: scale(1); } }
+
+    /* Side Drawer */
+    .side-drawer {
+      position: fixed; top: 0; left: -100%; width: 100%; max-width: 320px; height: 100vh;
+      background: var(--bg-glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      border-right: 1px solid var(--border-glass); z-index: 1500;
+      padding: 80px 25px 30px 25px; display: flex; flex-direction: column; gap: 20px;
+      transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 5px 0 25px var(--shadow);
+    }
+    .side-drawer.open { left: 0; }
+
+    /* Bottom Navigation */
+    .bottom-navigation-bar {
+      position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
+      background: var(--bg-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border-glass);
+      display: flex; justify-content: space-around; align-items: center;
+      z-index: 900; box-shadow: 0 -4px 10px var(--shadow);
+    }
+
+    .nav-tab-item {
+      display: flex; flex-direction: column; align-items: center;
+      background: transparent; border: none; color: var(--text-muted);
+      font-size: 0.8rem; font-weight: 500; cursor: pointer; gap: 4px; width: 25%;
+    }
+    .nav-tab-item.active { color: var(--accent); font-weight: 700; }
+    .nav-tab-item span.icon { font-size: 1.4rem; }
+
+    /* List Streams & GDPR */
+    .url-list-stream { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+    .url-item-row {
+      background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass);
+      border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .url-item-row .alias { font-weight: 600; font-size: 1.05rem; }
+    .url-item-row .links-data { font-size: 0.85rem; word-break: break-all; }
+    .url-item-row .actions-group { display: flex; gap: 10px; margin-top: 4px; }
+    
+    .action-inline-btn {
+      padding: 6px 12px; border: 1px solid var(--border-glass); background: transparent;
+      color: var(--text-main); border-radius: 6px; font-size: 0.8rem; cursor: pointer;
+    }
+    .action-inline-btn.danger { color: #ef4444; border-color: rgba(239, 68, 68, 0.2); }
+
+    .gdpr-danger-block { border-top: 1px solid var(--border-glass); padding-top: 20px; margin-top: auto; }
+    .danger-action-btn {
+      width: 100%; padding: 12px; background: transparent; border: 1px solid #ef4444;
+      color: #ef4444; font-weight: 600; border-radius: 12px; cursor: pointer;
+    }
+    .danger-action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .banner-toast {
+      position: fixed; top: 105px; right: 20px; background: var(--bg-glass);
+      border: 1px solid var(--border-glass); box-shadow: 0 10px 25px var(--shadow);
+      padding: 15px 20px; border-radius: 12px; z-index: 3000;
+      animation: slide-in-toast 0.25s ease-out forwards;
+    }
+
+    @keyframes slide-in-toast {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="global-header">
+    <button id="toggle-drawer-btn" class="header-btn" aria-label="Open Settings">⚙️</button>
+    <div class="brand-logo" style="font-weight: 800; font-size: 1.2rem; color: var(--accent);">HGT SHORTENER</div>
+    <button id="theme-toggle-btn" class="header-btn" aria-label="Toggle Layout Theme">🌙</button>
+  </header>
+
+  <div class="marquee-container" id="marquee-banner">
+    <div class="marquee-content" id="marquee-text-node">Welcome to HGT URL Shortener. Access and shorten your link as anyhow you want. Custom allocations available 24/7.</div>
+  </div>
+
+  <div class="app-container">
+
+    <div id="view-auth" class="view-card">
+      <h2 style="margin-bottom: 8px; text-align: center;">Get Started</h2>
+      <p style="color: var(--text-muted); text-align: center; font-size: 0.85rem; margin-bottom: 24px;">Create an account or login to optimize routing rules.</p>
+      
+      <form id="auth-email-form" onsubmit="return false;">
+        <div class="form-group">
+          <div class="label-wrapper"><label for="auth-email">Email Address</label></div>
+          <input type="email" id="auth-email" required placeholder="name@domain.com">
+        </div>
+        <div class="form-group">
+          <div class="label-wrapper"><label for="auth-password">Password</label></div>
+          <input type="password" id="auth-password" required placeholder="••••••••">
+        </div>
+        <button id="auth-submit-primary" class="primary-btn" style="margin-top: 5px;">Continue</button>
+        <button id="auth-toggle-mode-btn" class="secondary-btn">Switch to Sign Up</button>
+      </form>
+
+      <div class="oauth-divider">or secure identity via</div>
+      <button id="auth-google-tap-mock" class="google-btn">
+        <img src="https://cdns.iconmonstr.com/wp-content/releases/preview/2016/200/iconmonstr-google-plus-11.png" style="width:18px; height:18px;" alt=""> Continue with Google
+      </button>
+    </div>
+
+    <div id="view-home" class="view-card hidden">
+      <h2 style="margin-bottom: 20px;">Shorten Link</h2>
+      
+      <div class="form-group">
+        <div class="label-wrapper">
+          <label for="input-target-url">Destination URL</label>
+          <div class="help-dot" data-tooltip="Paste your long link here (e.g., https://very-long-domain.com/path-to-file).">?</div>
+        </div>
+        <input type="url" id="input-target-url" placeholder="https://example.com/deep/path/resource">
+      </div>
+
+      <div class="form-group">
+        <div class="label-wrapper">
+          <label for="input-custom-alias">Custom Identifier Name</label>
+          <div class="help-dot" data-tooltip="Enter a tracking tag or alias to uniquely route your target parameters.">?</div>
+        </div>
+        <input type="text" id="input-custom-alias" placeholder="summer-promo-2026">
+      </div>
+
+      <button id="engine-shorten-btn" class="primary-btn">Generate Short Link</button>
+      
+      <button id="install-pwa-btn" class="secondary-btn hidden" style="border-color: var(--accent); color: var(--accent);">✨ Install HGT Application</button>
+
+      <div id="engine-loader" class="radial-progress-container hidden">
+        <svg class="circular-svg">
+          <circle class="circular-bg-ring" cx="40" cy="40" r="36"></circle>
+          <circle class="circular-progress-bar" cx="40" cy="40" r="36"></circle>
+        </svg>
+        <p id="loader-status-text" style="margin-top: 12px; font-weight: 500; font-size: 0.9rem;">Analysing token metrics...</p>
+      </div>
+    </div>
+
+    <div id="view-myurl" class="view-card hidden">
+      <h2>My Shortened Links</h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Active routing nodes under current token identity authorization block.</p>
+      <div id="workspace-links-stream" class="url-list-stream">
+        </div>
+    </div>
+
+  </div>
+
+  <div id="app-settings-drawer" class="side-drawer">
+    <h3 style="border-bottom: 1px solid var(--border-glass); padding-bottom: 10px;">Workspace Settings</h3>
+    <p id="drawer-user-identity" style="font-size:0.85rem; color: var(--text-muted); word-break: break-all;"></p>
+    
+    <div class="setting-row" style="margin-top:10px;">
+      <button id="drawer-notif-enable" class="primary-btn" style="padding:10px; font-size:0.85rem; margin-bottom:10px;">🔔 Enable Push Notifications</button>
+      <button id="drawer-notif-disable" class="secondary-btn" style="padding:10px; font-size:0.85rem;">🔕 Disable Push Notifications</button>
+    </div>
+
+    <button id="drawer-logout-btn" class="secondary-btn" style="border-color: #ef4444; color: #ef4444;">Sign Out</button>
+
+    <div class="gdpr-danger-block">
+      <div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:12px;">
+        <input type="checkbox" id="gdpr-purge-checkbox" style="margin-top: 3px;">
+        <label for="gdpr-purge-checkbox" style="font-size:0.75rem; color: var(--text-muted); line-height:1.3;">
+          I explicitly demand total right-to-be-forgotten deletion context erasure under GDPR/CCPA criteria rulesets.
+        </label>
+      </div>
+      <button id="gdpr-execution-purge-btn" class="danger-action-btn" disabled>Purge Account & Data</button>
+    </div>
+  </div>
+
+  <div id="bottom-navigation-dock" class="bottom-navigation-bar hidden">
+      <button class="nav-tab-item active" data-view="view-home">
+          <span class="icon">🏠</span>
+          <span>Home</span>
+      </button>
+      <button class="nav-tab-item" data-view="view-myurl">
+          <span class="icon">🔗</span>
+          <span>My URLs</span>
+      </button>
+  </div>
+
+  <div id="success-intercept-modal" class="fullscreen-overlay hidden">
+    <div class="overlay-content">
+      <div style="font-size: 3.5rem; margin-bottom: 15px;">🥳🎓</div>
+      <h2 style="margin-bottom: 10px;">Congratulations!</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">Your shortened communication channel routing asset link is live.</p>
+      
+      <div style="background: rgba(0,170,255,0.08); border: 1px dashed var(--accent); padding: 15px; border-radius: 12px; margin-bottom: 25px;">
+        <p id="modal-short-link-output" style="font-weight: 700; color: var(--accent); font-size: 1.1rem; word-break:break-all;"></p>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button id="modal-copy-action-btn" class="primary-btn" style="flex:1;">Copy Link</button>
+        <button id="modal-close-action-btn" class="secondary-btn" style="flex:1; margin-top:0;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged,
+      signInWithPopup,
+      GoogleAuthProvider,
+      deleteUser
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      getDoc, 
+      setDoc, 
+      updateDoc, 
+      collection, 
+      query, 
+      where, 
+      getDocs, 
+      deleteDoc, 
+      runTransaction,
+      Timestamp 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // SECURE APP METRICS CONTEXT REGISTER
+    const firebaseConfig = {
+      apiKey: "AIzaSyBH0-HqKsYbSxX52epMYp1sdV0I_dfkDs8",
+      authDomain: "url-118aa.firebaseapp.com",
+      projectId: "url-118aa",
+      storageBucket: "url-118aa.firebasestorage.app",
+      messagingSenderId: "42489507688",
+      appId: "1:42489507688:web:5eb2ed2093bf3e82a1f0dd",
+      measurementId: "G-6C7PN7S4JN"
+    };
+
+    // INITIALIZE CONTEXTS
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    // APPLICATION STATE CONFIGURATION ENGINE
+    let currentActiveUser = null;
+    let currentAuthMode = "LOGIN"; 
+    let deferredPWAInstallPrompt = null;
+
+    // PWA INTERCEPT ROUTINES
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPWAInstallPrompt = e;
+      const installBtn = document.getElementById('install-pwa-btn');
+      if (installBtn) installBtn.classList.remove('hidden');
+    });
+
+    // INITIAL APPLICATION LIFECYCLE EVALUATION RUNS
+    document.addEventListener('DOMContentLoaded', () => {
+      initUIEventBindings();
+      checkShortLinkRoutingResolver();
+      evaluateThemeState();
+      startOfflineResilientMarqueeEngine();
+    });
+
+    function initUIEventBindings() {
+      document.getElementById('theme-toggle-btn').addEventListener('click', toggleThemeContext);
+      document.getElementById('toggle-drawer-btn').addEventListener('click', toggleDrawerContext);
+      document.addEventListener('click', handleOutsideDrawerClickIntercept);
+
+      document.getElementById('auth-toggle-mode-btn').addEventListener('click', toggleAuthViewMode);
+      document.getElementById('auth-submit-primary').addEventListener('click', executeEmailPasswordAuthPipeline);
+      document.getElementById('auth-google-tap-mock').addEventListener('click', executeGoogleOneTapPipeline);
+      document.getElementById('drawer-logout-btn').addEventListener('click', executeSignOutPipeline);
+
+      document.querySelectorAll('.nav-tab-item').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          const selectedView = e.currentTarget.getAttribute('data-view');
+          switchActiveViewPanel(selectedView);
+        });
+      });
+
+      document.getElementById('engine-shorten-btn').addEventListener('click', executeShortenGenerationSequence);
+      document.getElementById('install-pwa-btn').addEventListener('click', triggerPWAInstallationWorkflow);
+
+      document.getElementById('drawer-notif-enable').addEventListener('click', () => toggleNotificationChannelPermission(true));
+      document.getElementById('drawer-notif-disable').addEventListener('click', () => toggleNotificationChannelPermission(false));
+
+      const gdprCheck = document.getElementById('gdpr-purge-checkbox');
+      const gdprBtn = document.getElementById('gdpr-execution-purge-btn');
+      gdprCheck.addEventListener('change', (e) => { gdprBtn.disabled = !e.target.checked; });
+      gdprBtn.addEventListener('click', executeGDPRDataPurgeDestructionPipeline);
+
+      document.getElementById('modal-close-action-btn').addEventListener('click', () => {
+        document.getElementById('success-intercept-modal').classList.add('hidden');
+      });
+    }
+
+    function evaluateThemeState() {
+      const savedTheme = localStorage.getItem('hgt-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      document.getElementById('theme-toggle-btn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    }
+
+    function toggleThemeContext() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const targetTheme = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', targetTheme);
+      localStorage.setItem('hgt-theme', targetTheme);
+      document.getElementById('theme-toggle-btn').textContent = targetTheme === 'dark' ? '☀️' : '🌙';
+    }
+
+    function toggleDrawerContext() {
+      document.getElementById('app-settings-drawer').classList.toggle('open');
+    }
+
+    function handleOutsideDrawerClickIntercept(e) {
+      const drawer = document.getElementById('app-settings-drawer');
+      const toggleBtn = document.getElementById('toggle-drawer-btn');
+      if (!drawer.contains(e.target) && !toggleBtn.contains(e.target) && drawer.classList.contains('open')) {
+        drawer.classList.remove('open');
+      }
+    }
+
+    function switchActiveViewPanel(targetViewId) {
+      const views = ['view-auth', 'view-home', 'view-myurl'];
+      views.forEach(v => {
+        const el = document.getElementById(v);
+        if(el) el.classList.add('hidden');
+      });
+      
+      const bottomNav = document.getElementById('bottom-navigation-dock');
+      if (bottomNav) {
+        bottomNav.querySelectorAll('.nav-tab-item').forEach(btn => btn.classList.remove('active'));
+        const activeTab = bottomNav.querySelector(`[data-view="${targetViewId}"]`);
+        if (activeTab) activeTab.classList.add('active');
+      }
+
+      if (!currentActiveUser) {
+        document.getElementById('view-auth').classList.remove('hidden');
+        if (bottomNav) bottomNav.classList.add('hidden');
+      } else {
+        document.getElementById(targetViewId).classList.remove('hidden');
+        if (bottomNav) bottomNav.classList.remove('hidden');
+        if (targetViewId === 'view-myurl') {
+          synchronizeWorkspaceLinksStream();
+        }
+      }
+    }
+
+    function startOfflineResilientMarqueeEngine() {
+      const textNode = document.getElementById('marquee-text-node');
+      const updateMarqueeBannerText = () => {
+        if (navigator.onLine) {
+          textNode.textContent = "Welcome to HGT URL Shortener. You can access and shorten your link as anyhow you want. Operational matrix online. 🚀";
+        } else {
+          textNode.textContent = "⚠️ Working Offline Mode. Local stored instances are operational. Changes sync once connection is restored.";
+        }
+      };
+      window.addEventListener('online', updateMarqueeBannerText);
+      window.addEventListener('offline', updateMarqueeBannerText);
+      updateMarqueeBannerText();
+    }
+
+    function showBannerAlert(messageText) {
+      const alertNode = document.createElement('div');
+      alertNode.className = 'banner-toast';
+      alertNode.innerText = messageText;
+      document.body.appendChild(alertNode);
+      setTimeout(() => {
+        alertNode.style.animation = 'slide-in-toast 0.25s ease-out reverse forwards';
+        setTimeout(() => alertNode.remove(), 250);
+      }, 4000);
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('HGT Cache Operations Context Verified:', reg.scope))
+        .catch(err => console.error('HGT Context Allocation Error:', err));
+    }
+
+    let appVisibilityTrackerInstance = null;
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        appVisibilityTrackerInstance = setTimeout(() => {
+          triggerBackgroundEngagementPrompt();
+        }, 300000); 
+      } else {
+        if(appVisibilityTrackerInstance) clearTimeout(appVisibilityTrackerInstance);
+      }
+    });
+
+    function triggerBackgroundEngagementPrompt() {
+      if (Notification.permission === 'granted' && currentActiveUser) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification('HGT URL Shortener 🌐', {
+            body: 'Hello, are you excited of going back to the HGT URL shortener?',
+            icon: 'https://cdn-icons-png.flaticon.com/512/3233/3233077.png'
+          });
+        });
+      }
+    }
+
+    function toggleNotificationChannelPermission(demandState) {
+      if (demandState) {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            showBannerAlert('System Alert Notification processing configurations active! ✅');
+            navigator.serviceWorker.ready.then(reg => {
+              reg.showNotification('HGT URL Shortener', {
+                body: 'Welcome to HGT URL shortener! You can access and shorten your link as anyhow you want.',
+                icon: 'https://cdn-icons-png.flaticon.com/512/3233/3233077.png'
+              });
+            });
+          } else {
+            showBannerAlert('Notification configurations access rejected by context host.');
+          }
+        });
+      } else {
+        showBannerAlert('System notifications channels silent profiles configured locally.');
+      }
+    }
+
+    function triggerPWAInstallationWorkflow() {
+      if (deferredPWAInstallPrompt) {
+        deferredPWAInstallPrompt.prompt();
+        deferredPWAInstallPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            document.getElementById('install-pwa-btn').classList.add('hidden');
+          }
+          deferredPWAInstallPrompt = null;
+        });
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const userSnapshot = await getDoc(userDocRef);
+        
+        if (userSnapshot.exists()) {
+          const profileData = userSnapshot.data();
+          if (profileData.isSuspended === true) {
+            const suspensionEnd = profileData.suspensionExpiry ? profileData.suspensionExpiry.toMillis() : 0;
+            if (Date.now() < suspensionEnd) {
+              const expirationTimeMsg = new Date(suspensionEnd).toLocaleString();
+              alert(`Your HGT Workspace Account is suspended from link actions until: ${expirationTimeMsg}`);
+              await signOut(auth);
+              window.location.reload();
+              return;
+            } else {
+              await updateDoc(userDocRef, { isSuspended: false });
+            }
+          }
+        } else {
+          await setDoc(userDocRef, {
+            email: user.email,
+            uid: user.uid,
+            isSuspended: false,
+            suspensionExpiry: null,
+            createdAt: Timestamp.now()
+          });
+          setTimeout(() => toggleNotificationChannelPermission(true), 1500);
+        }
+
+        currentActiveUser = user;
+        document.getElementById('drawer-user-identity').innerText = `Active Session: ${user.email}`;
+        
+        if (currentAuthMode === "SIGNUP") {
+          showBannerAlert("Welcome to HGT URL shortener. You can access and shorten your link as anyhow you want.");
+        } else {
+          showBannerAlert(`Welcome back! 👋 Enjoy access.`);
+        }
+
+        switchActiveViewPanel('view-home');
+      } else {
+        currentActiveUser = null;
+        document.getElementById('drawer-user-identity').innerText = '';
+        switchActiveViewPanel('view-auth');
+      }
+    });
+
+    function toggleAuthViewMode() {
+      const submitBtn = document.getElementById('auth-submit-primary');
+      const toggleBtn = document.getElementById('auth-toggle-mode-btn');
+      if (currentAuthMode === "LOGIN") {
+        currentAuthMode = "SIGNUP";
+        submitBtn.innerText = "Register Account";
+        toggleBtn.innerText = "Switch to Login Profile";
+      } else {
+        currentAuthMode = "LOGIN";
+        submitBtn.innerText = "Continue";
+        toggleBtn.innerText = "Switch to Sign Up";
+      }
+    }
+
+    async function executeEmailPasswordAuthPipeline() {
+      const emailVal = document.getElementById('auth-email').value.trim();
+      const passVal = document.getElementById('auth-password').value;
+
+      if (!emailVal || !passVal) {
+        showBannerAlert('Verify parameters input field credentials values.');
+        return;
+      }
+
+      try {
+        if (currentAuthMode === "SIGNUP") {
+          await createUserWithEmailAndPassword(auth, emailVal, passVal);
+        } else {
+          await signInWithEmailAndPassword(auth, emailVal, passVal);
+        }
+      } catch (error) {
+        console.error(error);
+        showBannerAlert(`Authentication Pipeline Exception: ${error.message}`);
+      }
+    }
+
+    async function executeGoogleOneTapPipeline() {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error(error);
+        showBannerAlert(`Google Identity Stream Failure: ${error.message}`);
+      }
+    }
+
+    async function executeSignOutPipeline() {
+      try {
+        await signOut(auth);
+        toggleDrawerContext();
+      } catch (error) {
+        showBannerAlert('Sign out lifecycle intercept exception.');
+      }
+    }
+
+    async function validateUserQuotaPermissions(userId) {
+      const now = Date.now();
+      const quotaDocRef = doc(db, "users", userId, "quotas", "usage");
+      
+      let quotaPassed = true;
+      let exceptionReason = "";
+
+      await runTransaction(db, async (transaction) => {
+        const quotaSnapshot = await transaction.get(quotaDocRef);
+        
+        const INTERVAL_MIN = 2 * 60 * 1000;
+        const INTERVAL_HOUR = 60 * 60 * 1000;
+        const INTERVAL_DAY = 24 * 60 * 60 * 1000;
+
+        if (!quotaSnapshot.exists()) {
+          transaction.set(quotaDocRef, {
+            lastGenerated: Timestamp.fromMillis(now),
+            hourlyWindowStart: Timestamp.fromMillis(now),
+            hourlyCount: 1,
+            dailyWindowStart: Timestamp.fromMillis(now),
+            dailyCount: 1
+          });
+          return;
+        }
+
+        const qData = quotaSnapshot.data();
+        
+        const lastGenTime = qData.lastGenerated.toMillis();
+        const hourlyStart = qData.hourlyWindowStart.toMillis();
+        const dailyStart = qData.dailyWindowStart.toMillis();
+        
+        let currentHourlyCount = qData.hourlyCount;
+        let currentDailyCount = qData.dailyCount;
+
+        if (now - lastGenTime < INTERVAL_MIN) {
+          quotaPassed = false;
+          const remainingSeconds = Math.ceil((INTERVAL_MIN - (now - lastGenTime)) / 1000);
+          exceptionReason = `Rate Limit Enforced: Please wait ${remainingSeconds}s before generating next link node resource.`;
+          return;
+        }
+
+        if (now - hourlyStart < INTERVAL_HOUR) {
+          if (currentHourlyCount >= 7) {
+            quotaPassed = false;
+            const remainingMinutes = Math.ceil((INTERVAL_HOUR - (now - hourlyStart)) / (60 * 1000));
+            exceptionReason = `Hourly Allocation Exhausted: Wait ${remainingMinutes}m for limit reset processing windows.`;
+            return;
+          } else {
+            currentHourlyCount += 1;
+          }
+        } else {
+          currentHourlyCount = 1;
+          qData.hourlyWindowStart = Timestamp.fromMillis(now);
+        }
+
+        if (now - dailyStart < INTERVAL_DAY) {
+          if (currentDailyCount >= 10) {
+            quotaPassed = false;
+            const remainingHours = Math.ceil((INTERVAL_DAY - (now - dailyStart)) / (60 * 60 * 1000));
+            exceptionReason = `Daily Limit Exceeded: Your generation quota window is locked for the next ${remainingHours} hours. Please wait until tomorrow.`;
+            return;
+          } else {
+            currentDailyCount += 1;
+          }
+        } else {
+          currentDailyCount = 1;
+          qData.dailyWindowStart = Timestamp.fromMillis(now);
+        }
+
+        transaction.update(quotaDocRef, {
+          lastGenerated: Timestamp.fromMillis(now),
+          hourlyWindowStart: qData.hourlyWindowStart,
+          hourlyCount: currentHourlyCount,
+          dailyWindowStart: qData.dailyWindowStart,
+          dailyCount: currentDailyCount
+        });
+      });
+
+      if (!quotaPassed) {
+        throw new Error(exceptionReason);
+      }
+    }
+
+    async function executeShortenGenerationSequence() {
+      if (!currentActiveUser) return;
+
+      const targetUrl = document.getElementById('input-target-url').value.trim();
+      const aliasName = document.getElementById('input-custom-alias').value.trim().replace(/[^a-zA-Z0-9-_]/g, '');
+
+      if (!targetUrl || !aliasName) {
+        showBannerAlert('Input destinations values and verification names correctly.');
+        return;
+      }
+
+      const loader = document.getElementById('engine-loader');
+      const shortenBtn = document.getElementById('engine-shorten-btn');
+
+      loader.classList.remove('hidden');
+      shortenBtn.disabled = true;
+
+      try {
+        document.getElementById('loader-status-text').innerText = "Validating generation profile allocations...";
+        await validateUserQuotaPermissions(currentActiveUser.uid);
+
+        document.getElementById('loader-status-text').innerText = "Registering short URL code routes...";
+        
+        const urlDocumentRef = doc(db, "urls", aliasName);
+        const urlSnapshot = await getDoc(urlDocumentRef);
+
+        if (urlSnapshot.exists()) {
+          throw new Error("Target Custom Identifier name identifier route matching elements collision detected.");
+        }
+
+        const linkAssetPayload = {
+          originalUrl: targetUrl,
+          ownerUid: currentActiveUser.uid,
+          isBlocked: false, 
+          createdAt: Timestamp.now()
+        };
+
+        await setDoc(urlDocumentRef, linkAssetPayload);
+
+        loader.classList.add('hidden');
+        shortenBtn.disabled = false;
+
+        triggerImmersiveSuccessCelebrationModal(aliasName);
+
+      } catch (error) {
+        console.error(error);
+        loader.classList.add('hidden');
+        shortenBtn.disabled = false;
+        alert(error.message);
+      }
+    }
+
+    function triggerImmersiveSuccessCelebrationModal(aliasPathKey) {
+      const derivedUrlString = `${window.location.origin}/index.html?id=${aliasPathKey}`;
+      
+      document.getElementById('modal-short-link-output').innerText = derivedUrlString;
+      document.getElementById('success-intercept-modal').classList.remove('hidden');
+
+      if (typeof confetti !== 'undefined') {
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      }
+
+      if (Notification.permission === 'granted') {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification('HGT URL Shortener 🚀', {
+            body: `Congratulations! Your link is now live at ${aliasPathKey}`,
+            icon: 'https://cdn-icons-png.flaticon.com/512/3233/3233077.png',
+            data: { url: derivedUrlString }
+          });
+        });
+      }
+
+      document.getElementById('modal-copy-action-btn').onclick = () => {
+        navigator.clipboard.writeText(derivedUrlString).then(() => {
+          showBannerAlert('Link payload copied into clipboard! 📋');
+        });
+      };
+    }
+
+    async function synchronizeWorkspaceLinksStream() {
+      const container = document.getElementById('workspace-links-stream');
+      container.innerHTML = '<p style="font-size:0.9rem; text-align:center; color:var(--text-muted);">Fetching links cache data pipeline...</p>';
+
+      if (!currentActiveUser) return;
+
+      try {
+        const targetQuery = query(collection(db, "urls"), where("ownerUid", "==", currentActiveUser.uid));
+        const querySnapshot = await getDocs(targetQuery);
+        
+        container.innerHTML = '';
+        
+        if(querySnapshot.empty) {
+          container.innerHTML = '<p style="font-size:0.9rem; text-align:center; color:var(--text-muted);">No operational routing links detected under current authorization context token profile.</p>';
+          return;
+        }
+
+        querySnapshot.forEach((linkDoc) => {
+          const data = linkDoc.data();
+          const documentId = linkDoc.id;
+          const computedUrl = `${window.location.origin}/index.html?id=${documentId}`;
+
+          const card = document.createElement('div');
+          card.className = 'url-item-row';
+          card.innerHTML = `
+            <div class="alias">🔗 ${documentId}</div>
+            <div class="links-data" style="color:var(--accent); font-weight:500;">${computedUrl}</div>
+            <div class="links-data" style="color:var(--text-muted); opacity:0.8;">Dest: ${data.originalUrl}</div>
+            <div class="actions-group">
+              <button class="action-inline-btn copy-shortcut-trigger" data-url="${computedUrl}">Copy</button>
+              <button class="action-inline-btn danger delete-shortcut-trigger" data-id="${documentId}">Delete</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+        container.querySelectorAll('.copy-shortcut-trigger').forEach(btn => {
+          btn.onclick = (e) => {
+            navigator.clipboard.writeText(e.target.getAttribute('data-url'));
+            showBannerAlert('Copied context node route parameters! 📋');
+          };
+        });
+
+        container.querySelectorAll('.delete-shortcut-trigger').forEach(btn => {
+          btn.onclick = async (e) => {
+            const idTarget = e.target.getAttribute('data-id');
+            if (confirm(`Confirm permanent erasure mapping execution operations of short url channel route identity index: ${idTarget}`)) {
+              await deleteDoc(doc(db, "urls", idTarget));
+              synchronizeWorkspaceLinksStream();
+              showBannerAlert('Resource deletion request operations cleared successfully.');
+            }
+          };
+        });
+
+      } catch (err) {
+        container.innerHTML = `<p style="font-size:0.85rem; color:#ef4444;">Workspace links stream synchronization failure error trace exception block: ${err.message}</p>`;
+      }
+    }
+
+    async function checkShortLinkRoutingResolver() {
+      const urlParametersParser = new URLSearchParams(window.location.search);
+      const routeIdentifierId = urlParametersParser.get('id');
+
+      if (routeIdentifierId) {
+        try {
+          document.body.innerHTML = `
+            <div style="background:#050a14; color:#ffffff; width:100vw; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
+              <div class="radial-progress-container">
+                <svg class="circular-svg"><circle class="circular-progress-bar" cx="40" cy="40" r="36"></circle></svg>
+              </div>
+              <h2 style="margin-top:20px; font-weight:400; letter-spacing:1px;">HGT SECURE ROUTING GATEWAY</h2>
+              <p style="color:#9ca3af; font-size:0.85rem; margin-top:8px;">Decrypting endpoint tracking token metrics layers configurations blocks...</p>
+            </div>
+          `;
+
+          const targetDocRef = doc(db, "urls", routeIdentifierId);
+          const documentSnapshotInstance = await getDoc(targetDocRef);
+
+          if (documentSnapshotInstance.exists()) {
+            const routeData = documentSnapshotInstance.data();
+
+            if (routeData.isBlocked === true) {
+              window.location.href = "/404.html";
+              return;
+            }
+
+            let evaluatedDestinationUrl = routeData.originalUrl;
+            if (!/^https?:\/\//i.test(evaluatedDestinationUrl)) {
+              evaluatedDestinationUrl = 'https://' + evaluatedDestinationUrl;
+            }
+            window.location.replace(evaluatedDestinationUrl);
+          } else {
+            window.location.href = "/404.html";
+          }
+        } catch (err) {
+          console.error(err);
+          window.location.href = "/404.html";
+        }
+      }
+    }
+
+    async function executeGDPRDataPurgeDestructionPipeline() {
+      if (!currentActiveUser) return;
+      
+      const targetPurgeIdentityUser = currentActiveUser;
+      if (!confirm("CRITICAL ACCREDITATION WARNING: This operation executes non-reversible cascade deletions erasing all matching custom shortened identifiers mapping profiles and user authorization accounts indexes. Proceed?")) {
+        return;
+      }
+
+      try {
+        toggleDrawerContext();
+        document.body.innerHTML = '<div style="background:#050a14; color:#ffffff; width:100vw; height:100vh; display:flex; align-items:center; justify-content:center;"><h2>Processing GDPR Right to be Forgotten data deletion cascades operations nodes...</h2></div>';
+        
+        const targetUserLinksQuery = query(collection(db, "urls"), where("ownerUid", "==", targetPurgeIdentityUser.uid));
+        const targetUserLinksSnapshot = await getDocs(targetUserLinksQuery);
+        
+        for (const linkDoc of targetUserLinksSnapshot.docs) {
+          await deleteDoc(doc(db, "urls", linkDoc.id));
+        }
+
+        await deleteDoc(doc(db, "users", targetPurgeIdentityUser.uid, "quotas", "usage"));
+        await deleteDoc(doc(db, "users", targetPurgeIdentityUser.uid));
+        await deleteUser(targetPurgeIdentityUser);
+
+        alert("GDPR Right to be Forgotten account deletion cascade complete. Session references deleted.");
+        window.location.reload();
+
+      } catch (error) {
+        console.error(error);
+        alert(`GDPR Compliance Operation Intercept Failure: ${error.message}. Please sign out, re-authenticate your current login state, and attempt verification again.`);
+        window.location.reload();
+      }
+    }
+  </script>
+</body>
+</html>

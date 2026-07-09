@@ -1,0 +1,22 @@
+{
+  "name": "HGT URL Shortener",
+  "short_name": "HGT Shortener",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#050a14",
+  "theme_color": "#00aaff",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3233/3233077.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3233/3233077.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
