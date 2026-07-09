@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HGT URL Shortener</title>
   
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="./manifest.json">
   
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -47,7 +47,7 @@
       display: flex;
       flex-direction: column;
       overflow-x: hidden;
-      padding-bottom: 80px;
+      padding-bottom: 120px; /* Space protected for navigation dock and fixed footer */
     }
 
     /* Header UI Elements */
@@ -332,7 +332,7 @@
 
     /* Bottom Navigation */
     .bottom-navigation-bar {
-      position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
+      position: fixed; bottom: 40px; left: 0; width: 100%; height: 70px;
       background: var(--bg-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
       border-top: 1px solid var(--border-glass);
       display: flex; justify-content: space-around; align-items: center;
@@ -380,6 +380,25 @@
     @keyframes slide-in-toast {
       from { transform: translateY(-20px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Fixed Professional Footer Component Layout */
+    .global-app-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 40px;
+      background: var(--bg-main);
+      border-top: 1px solid var(--border-glass);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      z-index: 950;
+      letter-spacing: 0.5px;
+      font-weight: 500;
     }
   </style>
 </head>
@@ -455,8 +474,7 @@
     <div id="view-myurl" class="view-card hidden">
       <h2>My Shortened Links</h2>
       <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Active routing nodes under current token identity authorization block.</p>
-      <div id="workspace-links-stream" class="url-list-stream">
-        </div>
+      <div id="workspace-links-stream" class="url-list-stream"></div>
     </div>
 
   </div>
@@ -510,6 +528,10 @@
       </div>
     </div>
   </div>
+
+  <footer class="global-app-footer">
+    <div>All Rights Reserved &copy; 2026 Henry Global Tech Industry (HGT)</div>
+  </footer>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -687,7 +709,7 @@
     }
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
+      navigator.serviceWorker.register('./sw.js')
         .then(reg => console.log('HGT Cache Operations Context Verified:', reg.scope))
         .catch(err => console.error('HGT Context Allocation Error:', err));
     }
@@ -982,7 +1004,8 @@
     }
 
     function triggerImmersiveSuccessCelebrationModal(aliasPathKey) {
-      const derivedUrlString = `${window.location.origin}/index.html?id=${aliasPathKey}`;
+      // FIX: Splits base location URLs to safely isolate folders and support your repository name context explicitly
+      const derivedUrlString = window.location.href.split('?')[0] + `?id=${aliasPathKey}`;
       
       document.getElementById('modal-short-link-output').innerText = derivedUrlString;
       document.getElementById('success-intercept-modal').classList.remove('hidden');
@@ -1028,7 +1051,9 @@
         querySnapshot.forEach((linkDoc) => {
           const data = linkDoc.data();
           const documentId = linkDoc.id;
-          const computedUrl = `${window.location.origin}/index.html?id=${documentId}`;
+          
+          // FIX: Appends short IDs directly onto active runtime path configuration matrices seamlessly
+          const computedUrl = window.location.href.split('?')[0] + `?id=${documentId}`;
 
           const card = document.createElement('div');
           card.className = 'url-item-row';
@@ -1090,7 +1115,7 @@
             const routeData = documentSnapshotInstance.data();
 
             if (routeData.isBlocked === true) {
-              window.location.href = "/404.html";
+              window.location.href = "./404.html";
               return;
             }
 
@@ -1100,11 +1125,11 @@
             }
             window.location.replace(evaluatedDestinationUrl);
           } else {
-            window.location.href = "/404.html";
+            window.location.href = "./404.html";
           }
         } catch (err) {
           console.error(err);
-          window.location.href = "/404.html";
+          window.location.href = "./404.html";
         }
       }
     }
