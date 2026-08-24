@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta name="google-site-verification" content="ZxvYybyg9963-ltKszRxcviAPkYag5UuGqjlJLMqtww" />
+<meta name="google-site-verification" content="ZxvYybyg9963-ltKszRxcviAPkYag5UuGqjlJLMqtww" />
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HGT URL Shortener</title>
@@ -10,25 +10,20 @@
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3233/3233077.png" type="image/png">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3233/3233077.png">
   
-  <!-- ===== MANIFEST ===== -->
   <link rel="manifest" href="./manifest.json">
   
-  <!-- ===== OG GRAPH (Facebook, WhatsApp, LinkedIn) ===== -->
   <meta property="og:title" content="HGT URL Shortener">
-  <meta property="og:description" content="Shorten your links with custom aliases on Henry Global Tech. Fast, secure, and reliable URL shortening service.">
+  <meta property="og:description" content="Shorten your links with custom aliases on Henry Global Tech.">
   <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/3233/3233077.png">
   <meta property="og:url" content="https://henryglobaltech.name.ng">
   <meta property="og:type" content="website">
   
-  <!-- ===== TWITTER CARD ===== -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="HGT URL Shortener">
   <meta name="twitter:description" content="Shorten your links with custom aliases on Henry Global Tech.">
   <meta name="twitter:image" content="https://cdn-icons-png.flaticon.com/512/3233/3233077.png">
   
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  
-  <!-- ===== GOOGLE OAUTH (YOUR CLIENT ID) ===== -->
   <script src="https://accounts.google.com/gsi/client"></script>
 
   <style>
@@ -580,15 +575,20 @@
 
   <!-- ===== SIDE DRAWER ===== -->
   <div id="app-settings-drawer" class="side-drawer">
-    <h3 style="border-bottom: 1px solid var(--border-glass); padding-bottom: 10px;">Workspace Settings</h3>
-    <p id="drawer-user-identity" style="font-size:0.85rem; color: var(--text-muted); word-break: break-all;"></p>
+    <h3 style="border-bottom: 1px solid var(--border-glass); padding-bottom: 10px;">⚙️ Settings</h3>
+    
+    <div id="drawer-user-info" style="padding: 10px 0; border-bottom: 1px solid var(--border-glass);">
+      <p style="font-weight: 600; font-size: 1rem;">👤 <span id="drawer-user-name"></span></p>
+      <p style="font-size: 0.8rem; color: var(--text-muted);"><span id="drawer-user-email"></span></p>
+    </div>
     
     <div class="setting-row" style="margin-top:10px;">
       <button id="drawer-notif-enable" class="primary-btn" style="padding:10px; font-size:0.85rem; margin-bottom:10px;">🔔 Enable Push Notifications</button>
       <button id="drawer-notif-disable" class="secondary-btn" style="padding:10px; font-size:0.85rem;">🔕 Disable Push Notifications</button>
     </div>
 
-    <button id="drawer-logout-btn" class="secondary-btn" style="border-color: #ef4444; color: #ef4444;">Sign Out</button>
+    <!-- ===== SIGN OUT BUTTON - NOW VISIBLE ===== -->
+    <button id="drawer-logout-btn" class="secondary-btn" style="border-color: #ef4444; color: #ef4444; margin-top: 10px; font-weight: 600;">🚪 Sign Out</button>
 
     <div class="gdpr-danger-block">
       <div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:12px;">
@@ -676,7 +676,7 @@
 
   <script type="module">
     // ============================================================
-    // IMPORTS - Firebase (Keep for Firestore)
+    // IMPORTS
     // ============================================================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { 
@@ -695,7 +695,7 @@
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     // ============================================================
-    // FIREBASE CONFIG (Keep for Firestore only)
+    // FIREBASE CONFIG
     // ============================================================
     const firebaseConfig = {
       apiKey: "AIzaSyBH0-HqKsYbSxX52epMYp1sdV0I_dfkDs8",
@@ -711,30 +711,28 @@
     const db = getFirestore(app);
 
     // ============================================================
-    // GOOGLE OAUTH - YOUR CLIENT ID
+    // CONFIGURATION
     // ============================================================
     const CLIENT_ID = "42489507688-r6sv3qlividapq3bdc86jhkganltfg3.apps.googleusercontent.com";
     const DOMAIN = "henryglobaltech.name.ng";
     const REVIEW_URL = "https://g.page/r/CVBlVEMUrEzAEAE/review";
 
     // ============================================================
-    // APPLICATION STATE    // ============================================================
+    // STATE
+    // ============================================================
     let currentActiveUser = null;
-    let currentAuthMode = "LOGIN"; // LOGIN or SIGNUP
+    let currentAuthMode = "LOGIN";
     let deferredPWAInstallPrompt = null;
     let selectedRating = 0;
-    let hasRated = false;
-    let ratingSkipped = false;
 
     // ============================================================
-    // DOM REFERENCES
+    // DOM REFS
     // ============================================================
     const $ = (id) => document.getElementById(id);
     const viewAuth = $('view-auth');
     const viewHome = $('view-home');
     const viewMyurl = $('view-myurl');
     const bottomNav = $('bottom-navigation-dock');
-    const authForm = $('auth-form');
     const authEmail = $('auth-email');
     const authPassword = $('auth-password');
     const authConfirm = $('auth-confirm-password');
@@ -750,7 +748,8 @@
     const strengthBar = $('password-strength-bar');
     const drawer = $('app-settings-drawer');
     const drawerToggle = $('toggle-drawer-btn');
-    const drawerUser = $('drawer-user-identity');
+    const drawerUserName = $('drawer-user-name');
+    const drawerUserEmail = $('drawer-user-email');
     const headerUser = $('header-user-email');
     const logoutBtn = $('drawer-logout-btn');
     const themeToggle = $('theme-toggle-btn');
@@ -928,11 +927,12 @@
     });
 
     // ============================================================
-    // GOOGLE OAUTH - YOUR CLIENT ID
+    // GOOGLE OAUTH
     // ============================================================
     function initGoogleOAuth() {
       if (typeof google === 'undefined') {
-        console.warn('Google API not loaded');
+        console.warn('Google API not loaded, retrying...');
+        setTimeout(initGoogleOAuth, 1000);
         return;
       }
 
@@ -943,7 +943,6 @@
         cancel_on_tap_outside: true,
       });
 
-      // Render the Google button
       google.accounts.id.renderButton(
         authGoogleBtn,
         { 
@@ -955,15 +954,15 @@
           logo_alignment: 'center'
         }
       );
+      console.log('✅ Google OAuth initialized with Client ID:', CLIENT_ID);
     }
 
     function handleGoogleCredentialResponse(response) {
       const payload = decodeJwtResponse(response.credential);
-      console.log('Google user:', payload);
+      console.log('✅ Google user:', payload.email);
 
       showLoading('Signing in with Google...');
 
-      // Create or get user in Firestore
       const userData = {
         email: payload.email,
         name: payload.name,
@@ -976,7 +975,6 @@
         createdAt: Timestamp.now()
       };
 
-      // Save to Firestore
       const userRef = doc(db, "users", payload.sub);
       getDoc(userRef).then(snap => {
         if (!snap.exists()) {
@@ -1000,7 +998,7 @@
         switchView('view-home');
         checkAndShowRating();
       }).catch(err => {
-        console.error('Firestore error:', err);
+        console.error('❌ Firestore error:', err);
         hideLoading();
         showBanner('Authentication error. Please try again.');
       });
@@ -1016,7 +1014,7 @@
     }
 
     // ============================================================
-    // EMAIL/PASSWORD AUTH (Store in Firestore)
+    // EMAIL/PASSWORD AUTH
     // ============================================================
     authSubmit.addEventListener('click', async () => {
       const email = authEmail.value.trim();
@@ -1048,7 +1046,6 @@
       showLoading(currentAuthMode === "SIGNUP" ? 'Creating your account...' : 'Signing you in...');
 
       try {
-        // Generate a unique ID for the user (since we're not using Firebase Auth)
         const userId = btoa(email + Date.now()).replace(/[^a-zA-Z0-9]/g, '');
         const userRef = doc(db, "users", userId);
         const snap = await getDoc(userRef);
@@ -1069,7 +1066,7 @@
             isSuspended: false,
             suspensionExpiry: null,
             createdAt: Timestamp.now(),
-            passwordHash: btoa(password + 'hgt-salt') // Simple hash - in production use proper hashing
+            passwordHash: btoa(password + 'hgt-salt')
           };
           
           await setDoc(userRef, userData);
@@ -1082,12 +1079,9 @@
           hideLoading();
           showBanner('Account created successfully! 🎉');
           switchView('view-home');
-          
-          // Show rating after signup
           setTimeout(() => checkAndShowRating(), 1500);
           
         } else {
-          // LOGIN
           if (!snap.exists()) {
             hideLoading();
             showBanner('Account not found. Please sign up.');
@@ -1120,7 +1114,6 @@
           checkAndShowRating();
         }
         
-        // Clear form
         authPassword.value = '';
         authConfirm.value = '';
         
@@ -1132,16 +1125,13 @@
     });
 
     // ============================================================
-    // GOOGLE BUTTON - FALLBACK if GSI not loaded
+    // GOOGLE BUTTON FALLBACK
     // ============================================================
     authGoogleBtn.addEventListener('click', () => {
       if (typeof google !== 'undefined' && google.accounts) {
-        // Let the GSI handle it
         return;
       }
-      // Fallback: show message
       showBanner('Google Sign-In is loading. Please try again.');
-      // Try to init again
       initGoogleOAuth();
     });
 
@@ -1152,10 +1142,12 @@
       if (currentActiveUser) {
         const displayName = currentActiveUser.name || currentActiveUser.email;
         headerUser.textContent = displayName;
-        drawerUser.textContent = `Active Session: ${currentActiveUser.email}`;
+        drawerUserName.textContent = displayName;
+        drawerUserEmail.textContent = currentActiveUser.email;
       } else {
         headerUser.textContent = '';
-        drawerUser.textContent = '';
+        drawerUserName.textContent = '';
+        drawerUserEmail.textContent = '';
       }
     }
 
@@ -1166,6 +1158,7 @@
       currentActiveUser = null;
       updateUserUI();
       drawer.classList.remove('open');
+      localStorage.removeItem('hgt-user');
       switchView('view-auth');
       showBanner('You have been signed out.');
     });
@@ -1278,6 +1271,7 @@
         await setDoc(urlRef, {
           originalUrl: url,
           ownerUid: currentActiveUser.uid,
+          ownerEmail: currentActiveUser.email,
           isBlocked: false,
           createdAt: Timestamp.now()
         });
@@ -1285,7 +1279,7 @@
         loader.classList.add('hidden');
         shortenBtn.disabled = false;
 
-        // Show success
+        // Generate short URL - CLEAN FORMAT
         const shortUrl = `https://${DOMAIN}/${alias}`;
         triggerSuccess(shortUrl, alias);
 
@@ -1305,7 +1299,6 @@
         confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
       }
 
-      // Push notification
       if (Notification.permission === 'granted') {
         navigator.serviceWorker.ready.then(reg => {
           reg.showNotification('HGT URL Shortener 🚀', {
@@ -1316,7 +1309,6 @@
         });
       }
 
-      // Show rating popup after success
       setTimeout(() => {
         checkAndShowRating();
       }, 1000);
@@ -1336,26 +1328,17 @@
     // RATING SYSTEM
     // ============================================================
     function checkAndShowRating() {
-      // Check if user already rated or skipped
       const rated = localStorage.getItem('hgt-rated');
       const skipped = localStorage.getItem('hgt-rating-skipped');
       
-      if (rated === 'true') {
-        // User already rated - don't show again
-        return;
-      }
+      if (rated === 'true') return;
       
-      // If user clicked "Later" recently, don't show too often
       const lastSkip = localStorage.getItem('hgt-rating-last-skip');
       if (lastSkip) {
         const hoursSince = (Date.now() - parseInt(lastSkip)) / (1000 * 60 * 60);
-        if (hoursSince < 6) {
-          // Wait 6 hours before asking again
-          return;
-        }
+        if (hoursSince < 6) return;
       }
       
-      // Show the rating modal
       resetRating();
       ratingModal.classList.remove('hidden');
     }
@@ -1370,7 +1353,6 @@
       ratingRateBtn.disabled = true;
     }
 
-    // Star hover/click events
     stars.forEach(star => {
       star.addEventListener('mouseenter', () => {
         const val = parseInt(star.dataset.value);
@@ -1431,22 +1413,15 @@
       });
     });
 
-    // Rate Now button
     ratingRateBtn.addEventListener('click', () => {
       if (selectedRating === 0) return;
-      
-      // Store that user rated
       localStorage.setItem('hgt-rated', 'true');
       localStorage.removeItem('hgt-rating-skipped');
-      
       ratingModal.classList.add('hidden');
       showBanner('Thank you for your rating! ⭐');
-      
-      // Open review URL
       window.open(REVIEW_URL, '_blank');
     });
 
-    // Later button
     ratingLaterBtn.addEventListener('click', () => {
       localStorage.setItem('hgt-rating-skipped', 'true');
       localStorage.setItem('hgt-rating-last-skip', Date.now().toString());
@@ -1490,7 +1465,6 @@
           streamContainer.appendChild(div);
         });
         
-        // Copy buttons
         streamContainer.querySelectorAll('.copy-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             navigator.clipboard.writeText(btn.dataset.url);
@@ -1498,7 +1472,6 @@
           });
         });
         
-        // Delete buttons
         streamContainer.querySelectorAll('.delete-btn').forEach(btn => {
           btn.addEventListener('click', async () => {
             const id = btn.dataset.id;
@@ -1596,116 +1569,143 @@
     });
 
     // ============================================================
-    // SHORT URL REDIRECT HANDLER
+    // SHORT URL REDIRECT HANDLER - FIXED
     // ============================================================
     async function handleRedirect() {
-      const path = window.location.pathname;
-      // Check if it's a short URL (e.g., /summer-promo)
-      if (path && path.length > 1 && path !== '/index.html' && path !== '/') {
-        const alias = path.replace('/', '');
-        try {
-          document.body.innerHTML = `
-            <div style="background:#050a14;color:#fff;width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;">
-              <div class="radial-progress-container">
-                <svg class="circular-svg"><circle class="circular-progress-bar" cx="40" cy="40" r="36"></circle></svg>
-              </div>
-              <h2 style="margin-top:20px;font-weight:400;letter-spacing:1px;">HGT SECURE ROUTING</h2>
-              <p style="color:#9ca3af;font-size:0.85rem;margin-top:8px;">Redirecting you...</p>
-            </div>
-          `;
-          
-          const ref = doc(db, "urls", alias);
-          const snap = await getDoc(ref);
-          
-          if (snap.exists()) {
-            const data = snap.data();
-            if (data.isBlocked) {
-              window.location.href = "./404.html";
-              return;
+        const path = window.location.pathname;
+        const params = new URLSearchParams(window.location.search);
+        const idParam = params.get('id');
+        
+        console.log('🔍 Redirect check:', { path, idParam, full: window.location.href });
+        
+        // Check for ?id= parameter first (legacy format)
+        if (idParam) {
+            console.log('📌 Found ?id= parameter:', idParam);
+            try {
+                const ref = doc(db, "urls", idParam);
+                const snap = await getDoc(ref);
+                
+                if (snap.exists()) {
+                    const data = snap.data();
+                    console.log('✅ Found URL:', data);
+                    
+                    if (data.isBlocked) {
+                        console.log('⛔ URL is blocked');
+                        window.location.href = "./404.html";
+                        return;
+                    }
+                    
+                    let dest = data.originalUrl;
+                    if (!/^https?:\/\//i.test(dest)) {
+                        dest = 'https://' + dest;
+                    }
+                    console.log('🔄 Redirecting to:', dest);
+                    window.location.replace(dest);
+                    return;
+                } else {
+                    console.log('❌ Alias not found:', idParam);
+                    window.location.href = "./404.html";
+                    return;
+                }
+            } catch (err) {
+                console.error('❌ Redirect error:', err);
+                window.location.href = "./404.html";
+                return;
             }
-            let dest = data.originalUrl;
-            if (!/^https?:\/\//i.test(dest)) dest = 'https://' + dest;
-            window.location.replace(dest);
-          } else {
-            window.location.href = "./404.html";
-          }
-        } catch (err) {
-          console.error(err);
-          window.location.href = "./404.html";
         }
-      }
-      
-      // Check for ?id= alias (legacy support)
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get('id');
-      if (id) {
-        try {
-          const ref = doc(db, "urls", id);
-          const snap = await getDoc(ref);
-          if (snap.exists() && !snap.data().isBlocked) {
-            let dest = snap.data().originalUrl;
-            if (!/^https?:\/\//i.test(dest)) dest = 'https://' + dest;
-            window.location.replace(dest);
-          } else {
-            window.location.href = "./404.html";
-          }
-        } catch (err) {
-          window.location.href = "./404.html";
+        
+        // Check for clean URL: /alias (e.g., /summer-promo)
+        // Also make sure it's not the root, index.html, or a file with extension
+        if (path && path.length > 1 && path !== '/' && path !== '/index.html' && !path.includes('.')) {
+            const alias = path.replace('/', '');
+            console.log('📌 Found clean URL alias:', alias);
+            
+            // Don't try to redirect if it's the auth page or other system paths
+            if (alias === '404' || alias === 'manifest' || alias === 'sw') {
+                return;
+            }
+            
+            try {
+                const ref = doc(db, "urls", alias);
+                const snap = await getDoc(ref);
+                
+                if (snap.exists()) {
+                    const data = snap.data();
+                    console.log('✅ Found URL:', data);
+                    
+                    if (data.isBlocked) {
+                        console.log('⛔ URL is blocked');
+                        window.location.href = "./404.html";
+                        return;
+                    }
+                    
+                    let dest = data.originalUrl;
+                    if (!/^https?:\/\//i.test(dest)) {
+                        dest = 'https://' + dest;
+                    }
+                    console.log('🔄 Redirecting to:', dest);
+                    window.location.replace(dest);
+                    return;
+                } else {
+                    console.log('❌ Alias not found:', alias);
+                    // Don't redirect to 404 for known system paths
+                    if (alias !== 'index' && alias !== '') {
+                        window.location.href = "./404.html";
+                    }
+                    return;
+                }
+            } catch (err) {
+                console.error('❌ Redirect error:', err);
+                if (alias !== 'index' && alias !== '') {
+                    window.location.href = "./404.html";
+                }
+                return;
+            }
         }
-      }
     }
 
     // ============================================================
     // INIT
     // ============================================================
-    document.addEventListener('DOMContentLoaded', () => {
-      // Check for redirect first
-      handleRedirect();
-      
-      // Init Google OAuth
-      setTimeout(initGoogleOAuth, 500);
-      
-      // Check if user is already logged in (session)
-      // For simplicity, we check localStorage
-      const savedUser = localStorage.getItem('hgt-user');
-      if (savedUser) {
-        try {
-          currentActiveUser = JSON.parse(savedUser);
-          updateUserUI();
-          switchView('view-home');
-          checkAndShowRating();
-        } catch (e) {
-          localStorage.removeItem('hgt-user');
-        }
-      } else {
-        switchView('view-auth');
-      }
-      
-      // Save user on change
-      setInterval(() => {
-        if (currentActiveUser) {
-          localStorage.setItem('hgt-user', JSON.stringify(currentActiveUser));
+    document.addEventListener('DOMContentLoaded', async () => {
+        console.log('🚀 HGT URL Shortener loading...');
+        console.log(`📡 Domain: ${DOMAIN}`);
+        console.log(`🔑 Client ID: ${CLIENT_ID}`);
+        
+        // Check for redirect FIRST
+        await handleRedirect();
+        
+        // Init Google OAuth
+        setTimeout(initGoogleOAuth, 500);
+        
+        // Check if user is already logged in
+        const savedUser = localStorage.getItem('hgt-user');
+        if (savedUser) {
+            try {
+                currentActiveUser = JSON.parse(savedUser);
+                updateUserUI();
+                switchView('view-home');
+                // Only check rating after a delay
+                setTimeout(() => checkAndShowRating(), 2000);
+            } catch (e) {
+                localStorage.removeItem('hgt-user');
+            }
         } else {
-          localStorage.removeItem('hgt-user');
+            switchView('view-auth');
         }
-      }, 5000);
+        
+        // Save user on change
+        setInterval(() => {
+            if (currentActiveUser) {
+                localStorage.setItem('hgt-user', JSON.stringify(currentActiveUser));
+            } else {
+                localStorage.removeItem('hgt-user');
+            }
+        }, 5000);
     });
 
-    // ============================================================
-    // EXPOSE FOR DEBUGGING
-    // ============================================================
-    window.__hgt = {
-      currentActiveUser,
-      db,
-      switchView,
-      showBanner,
-      syncLinks
-    };
-
     console.log('🚀 HGT URL Shortener loaded!');
-    console.log(`📡 Domain: ${DOMAIN}`);
-    console.log(`🔑 Client ID: ${CLIENT_ID}`);
   </script>
 
 </body>
-  </html>
+</html>
