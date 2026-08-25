@@ -1,30 +1,13 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-<meta name="google-site-verification" content="ZxvYybyg9963-ltKszRxcviAPkYag5UuGqjlJLMqtww" />
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HGT URL Shortener</title>
-
-  <!-- ===== FAVICON & APP ICONS ===== -->
-  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3233/3233077.png" type="image/png">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3233/3233077.png">
   
   <link rel="manifest" href="./manifest.json">
   
-  <meta property="og:title" content="HGT URL Shortener">
-  <meta property="og:description" content="Shorten your links with custom aliases on Henry Global Tech.">
-  <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/3233/3233077.png">
-  <meta property="og:url" content="https://henryglobaltech.name.ng">
-  <meta property="og:type" content="website">
-  
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="HGT URL Shortener">
-  <meta name="twitter:description" content="Shorten your links with custom aliases on Henry Global Tech.">
-  <meta name="twitter:image" content="https://cdn-icons-png.flaticon.com/512/3233/3233077.png">
-  
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <script src="https://accounts.google.com/gsi/client"></script>
 
   <style>
     :root {
@@ -64,9 +47,10 @@
       display: flex;
       flex-direction: column;
       overflow-x: hidden;
-      padding-bottom: 120px;
+      padding-bottom: 120px; /* Space protected for navigation dock and fixed footer */
     }
 
+    /* Header UI Elements */
     .global-header {
       position: fixed;
       top: 0;
@@ -97,15 +81,7 @@
 
     .header-btn:hover { background: var(--border-glass); }
 
-    .user-email-display {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
+    /* Offline-Resilient Continuous Loop Text Element */
     .marquee-container {
       position: fixed;
       top: 60px;
@@ -135,6 +111,7 @@
       100% { transform: translate3d(-100%, 0, 0); }
     }
 
+    /* Main Flow Container App Wrapper */
     .app-container {
       margin-top: 110px;
       padding: 20px;
@@ -158,6 +135,7 @@
 
     .hidden { display: none !important; }
 
+    /* Form Styles */
     .form-group {
       margin-bottom: 20px;
       position: relative;
@@ -175,6 +153,49 @@
       color: var(--text-main);
     }
 
+    .help-dot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      background: var(--border-glass);
+      border: 1px solid var(--text-muted);
+      border-radius: 50%;
+      font-size: 0.75rem;
+      margin-left: 8px;
+      cursor: help;
+      color: var(--text-muted);
+      position: relative;
+    }
+
+    .help-dot::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 130%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: #0c101a;
+      color: #ffffff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      white-space: normal;
+      width: 200px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .help-dot:hover::after, .help-dot:focus::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) scale(1);
+    }
+
     input[type="text"], input[type="email"], input[type="password"], input[type="url"] {
       width: 100%;
       padding: 14px 16px;
@@ -184,42 +205,10 @@
       color: var(--text-main);
       font-size: 1rem;
       outline: none;
-      padding-right: 45px;
     }
 
     [data-theme="dark"] input { background: rgba(255, 255, 255, 0.03); }
     input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.2); }
-
-    .password-toggle {
-      position: absolute;
-      right: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: transparent;
-      border: none;
-      font-size: 1.2rem;
-      cursor: pointer;
-      color: var(--text-muted);
-      padding: 5px;
-    }
-
-    .password-toggle:hover { opacity: 0.7; }
-
-    .password-strength {
-      height: 4px;
-      border-radius: 2px;
-      margin-top: 8px;
-      background: var(--border-glass);
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .password-strength-bar {
-      height: 100%;
-      width: 0%;
-      border-radius: 2px;
-      transition: all 0.3s ease;
-    }
 
     .primary-btn {
       width: 100%;
@@ -235,7 +224,6 @@
     }
 
     .primary-btn:hover { background: var(--accent-hover); }
-    .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .secondary-btn {
       width: 100%;
@@ -282,10 +270,8 @@
       cursor: pointer;
     }
     [data-theme="dark"] .google-btn { background: #131314; color: #e3e3e3; border: 1px solid #8e918f; }
-    .google-btn:hover { opacity: 0.9; }
 
-    .google-btn img { width: 20px; height: 20px; }
-
+    /* Circular Loader */
     .radial-progress-container {
       display: flex;
       flex-direction: column;
@@ -308,6 +294,7 @@
       100% { stroke-dashoffset: 226.19; transform: rotate(360deg); }
     }
 
+    /* Modals & Overlays */
     .fullscreen-overlay {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
@@ -332,16 +319,7 @@
 
     @keyframes modal-pop { to { transform: scale(1); } }
 
-    .star {
-      font-size: 2.5rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      color: var(--text-muted);
-      user-select: none;
-    }
-    .star.active { color: #ffc107; }
-    .star:hover { transform: scale(1.1); }
-
+    /* Side Drawer */
     .side-drawer {
       position: fixed; top: 0; left: -100%; width: 100%; max-width: 320px; height: 100vh;
       background: var(--bg-glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
@@ -352,6 +330,7 @@
     }
     .side-drawer.open { left: 0; }
 
+    /* Bottom Navigation */
     .bottom-navigation-bar {
       position: fixed; bottom: 40px; left: 0; width: 100%; height: 70px;
       background: var(--bg-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
@@ -368,7 +347,8 @@
     .nav-tab-item.active { color: var(--accent); font-weight: 700; }
     .nav-tab-item span.icon { font-size: 1.4rem; }
 
-    .url-list-stream { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; max-height: 400px; overflow-y: auto; }
+    /* List Streams & GDPR */
+    .url-list-stream { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
     .url-item-row {
       background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass);
       border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px;
@@ -402,6 +382,7 @@
       to { transform: translateY(0); opacity: 1; }
     }
 
+    /* Fixed Professional Footer Component Layout */
     .global-app-footer {
       position: fixed;
       bottom: 0;
@@ -419,55 +400,6 @@
       letter-spacing: 0.5px;
       font-weight: 500;
     }
-
-    .form-row {
-      display: flex;
-      gap: 12px;
-    }
-    .form-row .form-group { flex: 1; }
-
-    .help-dot {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 18px;
-      height: 18px;
-      background: var(--border-glass);
-      border: 1px solid var(--text-muted);
-      border-radius: 50%;
-      font-size: 0.75rem;
-      margin-left: 8px;
-      cursor: help;
-      color: var(--text-muted);
-      position: relative;
-    }
-
-    .help-dot::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: 130%;
-      left: 50%;
-      transform: translateX(-50%) scale(0.9);
-      background: #0c101a;
-      color: #ffffff;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      white-space: normal;
-      width: 200px;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: all 0.2s ease;
-      z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-
-    .help-dot:hover::after, .help-dot:focus::after {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) scale(1);
-    }
   </style>
 </head>
 <body>
@@ -475,7 +407,6 @@
   <header class="global-header">
     <button id="toggle-drawer-btn" class="header-btn" aria-label="Open Settings">⚙️</button>
     <div class="brand-logo" style="font-weight: 800; font-size: 1.2rem; color: var(--accent);">HGT SHORTENER</div>
-    <div id="header-user-email" class="user-email-display"></div>
     <button id="theme-toggle-btn" class="header-btn" aria-label="Toggle Layout Theme">🌙</button>
   </header>
 
@@ -485,53 +416,29 @@
 
   <div class="app-container">
 
-    <!-- ===== AUTH VIEW ===== -->
     <div id="view-auth" class="view-card">
       <h2 style="margin-bottom: 8px; text-align: center;">Get Started</h2>
       <p style="color: var(--text-muted); text-align: center; font-size: 0.85rem; margin-bottom: 24px;">Create an account or login to optimize routing rules.</p>
       
-      <form id="auth-form" onsubmit="return false;">
-        <!-- Name & Surname (Sign-up only) -->
-        <div id="name-fields" class="form-row hidden">
-          <div class="form-group">
-            <div class="label-wrapper"><label for="auth-firstname">First Name</label></div>
-            <input type="text" id="auth-firstname" placeholder="John">
-          </div>
-          <div class="form-group">
-            <div class="label-wrapper"><label for="auth-lastname">Last Name</label></div>
-            <input type="text" id="auth-lastname" placeholder="Doe">
-          </div>
-        </div>
-
+      <form id="auth-email-form" onsubmit="return false;">
         <div class="form-group">
           <div class="label-wrapper"><label for="auth-email">Email Address</label></div>
           <input type="email" id="auth-email" required placeholder="name@domain.com">
         </div>
-
-        <div class="form-group" style="position:relative;">
+        <div class="form-group">
           <div class="label-wrapper"><label for="auth-password">Password</label></div>
           <input type="password" id="auth-password" required placeholder="••••••••">
-          <button type="button" class="password-toggle" id="toggle-password" aria-label="Toggle password visibility">👁️</button>
-          <div class="password-strength"><div class="password-strength-bar" id="password-strength-bar"></div></div>
         </div>
-
-        <div class="form-group" style="position:relative;" id="confirm-password-group">
-          <div class="label-wrapper"><label for="auth-confirm-password">Confirm Password</label></div>
-          <input type="password" id="auth-confirm-password" placeholder="••••••••">
-          <button type="button" class="password-toggle" id="toggle-confirm-password" aria-label="Toggle confirm password visibility">👁️</button>
-        </div>
-
         <button id="auth-submit-primary" class="primary-btn" style="margin-top: 5px;">Continue</button>
         <button id="auth-toggle-mode-btn" class="secondary-btn">Switch to Sign Up</button>
       </form>
 
       <div class="oauth-divider">or secure identity via</div>
-      <button id="auth-google-btn" class="google-btn">
-        <img src="https://cdn-icons-png.flaticon.com/512/300/300221.png" alt="Google logo"> Continue with Google
+      <button id="auth-google-tap-mock" class="google-btn">
+        <img src="https://cdns.iconmonstr.com/wp-content/releases/preview/2016/200/iconmonstr-google-plus-11.png" style="width:18px; height:18px;" alt=""> Continue with Google
       </button>
     </div>
 
-    <!-- ===== HOME VIEW ===== -->
     <div id="view-home" class="view-card hidden">
       <h2 style="margin-bottom: 20px;">Shorten Link</h2>
       
@@ -564,7 +471,6 @@
       </div>
     </div>
 
-    <!-- ===== MY URLS VIEW ===== -->
     <div id="view-myurl" class="view-card hidden">
       <h2>My Shortened Links</h2>
       <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Active routing nodes under current token identity authorization block.</p>
@@ -573,22 +479,16 @@
 
   </div>
 
-  <!-- ===== SIDE DRAWER ===== -->
   <div id="app-settings-drawer" class="side-drawer">
-    <h3 style="border-bottom: 1px solid var(--border-glass); padding-bottom: 10px;">⚙️ Settings</h3>
-    
-    <div id="drawer-user-info" style="padding: 10px 0; border-bottom: 1px solid var(--border-glass);">
-      <p style="font-weight: 600; font-size: 1rem;">👤 <span id="drawer-user-name"></span></p>
-      <p style="font-size: 0.8rem; color: var(--text-muted);"><span id="drawer-user-email"></span></p>
-    </div>
+    <h3 style="border-bottom: 1px solid var(--border-glass); padding-bottom: 10px;">Workspace Settings</h3>
+    <p id="drawer-user-identity" style="font-size:0.85rem; color: var(--text-muted); word-break: break-all;"></p>
     
     <div class="setting-row" style="margin-top:10px;">
       <button id="drawer-notif-enable" class="primary-btn" style="padding:10px; font-size:0.85rem; margin-bottom:10px;">🔔 Enable Push Notifications</button>
       <button id="drawer-notif-disable" class="secondary-btn" style="padding:10px; font-size:0.85rem;">🔕 Disable Push Notifications</button>
     </div>
 
-    <!-- ===== SIGN OUT BUTTON - ONLY SHOWS WHEN LOGGED IN ===== -->
-    <button id="drawer-logout-btn" class="secondary-btn hidden" style="border-color: #ef4444; color: #ef4444; margin-top: 10px; font-weight: 600;">🚪 Sign Out</button>
+    <button id="drawer-logout-btn" class="secondary-btn" style="border-color: #ef4444; color: #ef4444;">Sign Out</button>
 
     <div class="gdpr-danger-block">
       <div style="display:flex; gap:10px; align-items:flex-start; margin-bottom:12px;">
@@ -601,7 +501,6 @@
     </div>
   </div>
 
-  <!-- ===== BOTTOM NAV ===== -->
   <div id="bottom-navigation-dock" class="bottom-navigation-bar hidden">
       <button class="nav-tab-item active" data-view="view-home">
           <span class="icon">🏠</span>
@@ -613,7 +512,6 @@
       </button>
   </div>
 
-  <!-- ===== SUCCESS MODAL ===== -->
   <div id="success-intercept-modal" class="fullscreen-overlay hidden">
     <div class="overlay-content">
       <div style="font-size: 3.5rem; margin-bottom: 15px;">🥳🎓</div>
@@ -631,54 +529,22 @@
     </div>
   </div>
 
-  <!-- ===== RATING MODAL ===== -->
-  <div id="rating-modal" class="fullscreen-overlay hidden">
-    <div class="overlay-content">
-      <div style="font-size: 3rem; margin-bottom: 5px;">⭐</div>
-      <h2 style="margin-bottom: 5px;">Rate HGT Shortener</h2>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
-        How was your experience?
-      </p>
-      
-      <div id="star-rating-container" style="display: flex; gap: 8px; justify-content: center; margin: 15px 0;">
-        <span class="star" data-value="1">☆</span>
-        <span class="star" data-value="2">☆</span>
-        <span class="star" data-value="3">☆</span>
-        <span class="star" data-value="4">☆</span>
-        <span class="star" data-value="5">☆</span>
-      </div>
-      
-      <p id="rating-message" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Tap a star to rate</p>
-      
-      <div style="display: flex; gap: 10px;">
-        <button id="rating-rate-btn" class="primary-btn" style="flex:1;" disabled>Rate Now</button>
-        <button id="rating-later-btn" class="secondary-btn" style="flex:1; margin-top:0;">Later</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== LOADING OVERLAY ===== -->
-  <div id="loading-overlay" class="fullscreen-overlay hidden">
-    <div class="overlay-content" style="background: var(--bg-glass);">
-      <div class="radial-progress-container">
-        <svg class="circular-svg">
-          <circle class="circular-bg-ring" cx="40" cy="40" r="36"></circle>
-          <circle class="circular-progress-bar" cx="40" cy="40" r="36"></circle>
-        </svg>
-      </div>
-      <p id="loading-text" style="font-weight: 500; font-size: 1rem; margin-top: 10px;">Processing...</p>
-    </div>
-  </div>
-
   <footer class="global-app-footer">
     <div>All Rights Reserved &copy; 2026 Henry Global Tech Industry (HGT)</div>
   </footer>
 
   <script type="module">
-    // ============================================================
-    // IMPORTS - Firebase (Keep for Firestore)
-    // ============================================================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged,
+      signInWithPopup,
+      GoogleAuthProvider,
+      deleteUser
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { 
       getFirestore, 
       doc, 
@@ -694,9 +560,7 @@
       Timestamp 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ============================================================
-    // FIREBASE CONFIG (Keep for Firestore only)
-    // ============================================================
+    // SECURE APP METRICS CONTEXT REGISTER
     const firebaseConfig = {
       apiKey: "AIzaSyBH0-HqKsYbSxX52epMYp1sdV0I_dfkDs8",
       authDomain: "url-118aa.firebaseapp.com",
@@ -707,489 +571,319 @@
       measurementId: "G-6C7PN7S4JN"
     };
 
+    // INITIALIZE CONTEXTS
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
 
-    // ============================================================
-    // CONFIGURATION - YOUR CLIENT ID AND DOMAIN
-    // ============================================================
-    const CLIENT_ID = "42489507688-r6sv3qlividapq3bdc86jhkgqanltfg3.apps.googleusercontent.com";
-    const DOMAIN = "henryglobaltech.name.ng";
-    const REVIEW_URL = "https://g.page/r/CVBlVEMUrEzAEAE/review";
-
-    // ============================================================
-    // STATE
-    // ============================================================
+    // APPLICATION STATE CONFIGURATION ENGINE
     let currentActiveUser = null;
-    let currentAuthMode = "LOGIN";
+    let currentAuthMode = "LOGIN"; 
     let deferredPWAInstallPrompt = null;
-    let selectedRating = 0;
 
-    // ============================================================
-    // DOM REFS
-    // ============================================================
-    const $ = (id) => document.getElementById(id);
-    const viewAuth = $('view-auth');
-    const viewHome = $('view-home');
-    const viewMyurl = $('view-myurl');
-    const bottomNav = $('bottom-navigation-dock');
-    const authEmail = $('auth-email');
-    const authPassword = $('auth-password');
-    const authConfirm = $('auth-confirm-password');
-    const authFirstname = $('auth-firstname');
-    const authLastname = $('auth-lastname');
-    const authSubmit = $('auth-submit-primary');
-    const authToggleMode = $('auth-toggle-mode-btn');
-    const authGoogleBtn = $('auth-google-btn');
-    const nameFields = $('name-fields');
-    const confirmGroup = $('confirm-password-group');
-    const togglePassword = $('toggle-password');
-    const toggleConfirm = $('toggle-confirm-password');
-    const strengthBar = $('password-strength-bar');
-    const drawer = $('app-settings-drawer');
-    const drawerToggle = $('toggle-drawer-btn');
-    const drawerUserName = $('drawer-user-name');
-    const drawerUserEmail = $('drawer-user-email');
-    const drawerLogoutBtn = $('drawer-logout-btn');
-    const headerUser = $('header-user-email');
-    const themeToggle = $('theme-toggle-btn');
-    const shortenBtn = $('engine-shorten-btn');
-    const inputUrl = $('input-target-url');
-    const inputAlias = $('input-custom-alias');
-    const loader = $('engine-loader');
-    const loaderStatus = $('loader-status-text');
-    const loadingOverlay = $('loading-overlay');
-    const loadingText = $('loading-text');
-    const installBtn = $('install-pwa-btn');
-    const successModal = $('success-intercept-modal');
-    const modalLink = $('modal-short-link-output');
-    const modalCopy = $('modal-copy-action-btn');
-    const modalClose = $('modal-close-action-btn');
-    const ratingModal = $('rating-modal');
-    const stars = document.querySelectorAll('.star');
-    const ratingMessage = $('rating-message');
-    const ratingRateBtn = $('rating-rate-btn');
-    const ratingLaterBtn = $('rating-later-btn');
-    const streamContainer = $('workspace-links-stream');
-    const notifEnable = $('drawer-notif-enable');
-    const notifDisable = $('drawer-notif-disable');
-    const gdprCheck = $('gdpr-purge-checkbox');
-    const gdprBtn = $('gdpr-execution-purge-btn');
-
-    // ============================================================
-    // PWA INSTALL
-    // ============================================================
+    // PWA INTERCEPT ROUTINES
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPWAInstallPrompt = e;
+      const installBtn = document.getElementById('install-pwa-btn');
       if (installBtn) installBtn.classList.remove('hidden');
     });
 
-    // ============================================================
-    // SERVICE WORKER
-    // ============================================================
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('SW Registered:', reg.scope))
-        .catch(err => console.error('SW Error:', err));
-    }
-
-    // ============================================================
-    // THEME
-    // ============================================================
-    function evaluateThemeState() {
-      const saved = localStorage.getItem('hgt-theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', saved);
-      themeToggle.textContent = saved === 'dark' ? '☀️' : '🌙';
-    }
-    evaluateThemeState();
-
-    themeToggle.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme');
-      const target = current === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', target);
-      localStorage.setItem('hgt-theme', target);
-      themeToggle.textContent = target === 'dark' ? '☀️' : '🌙';
+    // INITIAL APPLICATION LIFECYCLE EVALUATION RUNS
+    document.addEventListener('DOMContentLoaded', () => {
+      initUIEventBindings();
+      checkShortLinkRoutingResolver();
+      evaluateThemeState();
+      startOfflineResilientMarqueeEngine();
     });
 
-    // ============================================================
-    // DRAWER - Sign Out button only shows when logged in
-    // ============================================================
-    drawerToggle.addEventListener('click', () => drawer.classList.toggle('open'));
-    document.addEventListener('click', (e) => {
-      if (!drawer.contains(e.target) && !drawerToggle.contains(e.target) && drawer.classList.contains('open')) {
-        drawer.classList.remove('open');
-      }
-    });
+    function initUIEventBindings() {
+      document.getElementById('theme-toggle-btn').addEventListener('click', toggleThemeContext);
+      document.getElementById('toggle-drawer-btn').addEventListener('click', toggleDrawerContext);
+      document.addEventListener('click', handleOutsideDrawerClickIntercept);
 
-    // ============================================================
-    // PASSWORD TOGGLE
-    // ============================================================
-    function togglePasswordVisibility(input, toggleBtn) {
-      toggleBtn.addEventListener('click', () => {
-        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-        input.setAttribute('type', type);
-        toggleBtn.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+      document.getElementById('auth-toggle-mode-btn').addEventListener('click', toggleAuthViewMode);
+      document.getElementById('auth-submit-primary').addEventListener('click', executeEmailPasswordAuthPipeline);
+      document.getElementById('auth-google-tap-mock').addEventListener('click', executeGoogleOneTapPipeline);
+      document.getElementById('drawer-logout-btn').addEventListener('click', executeSignOutPipeline);
+
+      document.querySelectorAll('.nav-tab-item').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          const selectedView = e.currentTarget.getAttribute('data-view');
+          switchActiveViewPanel(selectedView);
+        });
+      });
+
+      document.getElementById('engine-shorten-btn').addEventListener('click', executeShortenGenerationSequence);
+      document.getElementById('install-pwa-btn').addEventListener('click', triggerPWAInstallationWorkflow);
+
+      document.getElementById('drawer-notif-enable').addEventListener('click', () => toggleNotificationChannelPermission(true));
+      document.getElementById('drawer-notif-disable').addEventListener('click', () => toggleNotificationChannelPermission(false));
+
+      const gdprCheck = document.getElementById('gdpr-purge-checkbox');
+      const gdprBtn = document.getElementById('gdpr-execution-purge-btn');
+      gdprCheck.addEventListener('change', (e) => { gdprBtn.disabled = !e.target.checked; });
+      gdprBtn.addEventListener('click', executeGDPRDataPurgeDestructionPipeline);
+
+      document.getElementById('modal-close-action-btn').addEventListener('click', () => {
+        document.getElementById('success-intercept-modal').classList.add('hidden');
       });
     }
-    togglePasswordVisibility(authPassword, togglePassword);
-    togglePasswordVisibility(authConfirm, toggleConfirm);
 
-    // ============================================================
-    // PASSWORD STRENGTH
-    // ============================================================
-    authPassword.addEventListener('input', () => {
-      const val = authPassword.value;
-      let strength = 0;
-      if (val.length >= 8) strength += 25;
-      if (/[a-z]/.test(val)) strength += 25;
-      if (/[A-Z]/.test(val)) strength += 25;
-      if (/[0-9!@#$%^&*]/.test(val)) strength += 25;
-      
-      strengthBar.style.width = strength + '%';
-      
-      if (strength <= 25) { strengthBar.style.background = '#ef4444'; }
-      else if (strength <= 50) { strengthBar.style.background = '#f59e0b'; }
-      else if (strength <= 75) { strengthBar.style.background = '#3b82f6'; }
-      else { strengthBar.style.background = '#22c55e'; }
-    });
+    function evaluateThemeState() {
+      const savedTheme = localStorage.getItem('hgt-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      document.getElementById('theme-toggle-btn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    }
 
-    // ============================================================
-    // AUTH MODE TOGGLE
-    // ============================================================
-    authToggleMode.addEventListener('click', () => {
-      if (currentAuthMode === "LOGIN") {
-        currentAuthMode = "SIGNUP";
-        authSubmit.textContent = "Create Account";
-        authToggleMode.textContent = "Switch to Login";
-        nameFields.classList.remove('hidden');
-        confirmGroup.classList.remove('hidden');
-        authConfirm.required = true;
-      } else {
-        currentAuthMode = "LOGIN";
-        authSubmit.textContent = "Continue";
-        authToggleMode.textContent = "Switch to Sign Up";
-        nameFields.classList.add('hidden');
-        confirmGroup.classList.add('hidden');
-        authConfirm.required = false;
+    function toggleThemeContext() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const targetTheme = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', targetTheme);
+      localStorage.setItem('hgt-theme', targetTheme);
+      document.getElementById('theme-toggle-btn').textContent = targetTheme === 'dark' ? '☀️' : '🌙';
+    }
+
+    function toggleDrawerContext() {
+      document.getElementById('app-settings-drawer').classList.toggle('open');
+    }
+
+    function handleOutsideDrawerClickIntercept(e) {
+      const drawer = document.getElementById('app-settings-drawer');
+      const toggleBtn = document.getElementById('toggle-drawer-btn');
+      if (!drawer.contains(e.target) && !toggleBtn.contains(e.target) && drawer.classList.contains('open')) {
+        drawer.classList.remove('open');
       }
-    });
-
-    // ============================================================
-    // SHOW/HIDE LOADING
-    // ============================================================
-    function showLoading(text = 'Processing...') {
-      loadingText.textContent = text;
-      loadingOverlay.classList.remove('hidden');
-    }
-    function hideLoading() {
-      loadingOverlay.classList.add('hidden');
     }
 
-    // ============================================================
-    // SHOW BANNER
-    // ============================================================
-    function showBanner(msg) {
-      const el = document.createElement('div');
-      el.className = 'banner-toast';
-      el.textContent = msg;
-      document.body.appendChild(el);
+    function switchActiveViewPanel(targetViewId) {
+      const views = ['view-auth', 'view-home', 'view-myurl'];
+      views.forEach(v => {
+        const el = document.getElementById(v);
+        if(el) el.classList.add('hidden');
+      });
+      
+      const bottomNav = document.getElementById('bottom-navigation-dock');
+      if (bottomNav) {
+        bottomNav.querySelectorAll('.nav-tab-item').forEach(btn => btn.classList.remove('active'));
+        const activeTab = bottomNav.querySelector(`[data-view="${targetViewId}"]`);
+        if (activeTab) activeTab.classList.add('active');
+      }
+
+      if (!currentActiveUser) {
+        document.getElementById('view-auth').classList.remove('hidden');
+        if (bottomNav) bottomNav.classList.add('hidden');
+      } else {
+        document.getElementById(targetViewId).classList.remove('hidden');
+        if (bottomNav) bottomNav.classList.remove('hidden');
+        if (targetViewId === 'view-myurl') {
+          synchronizeWorkspaceLinksStream();
+        }
+      }
+    }
+
+    function startOfflineResilientMarqueeEngine() {
+      const textNode = document.getElementById('marquee-text-node');
+      const updateMarqueeBannerText = () => {
+        if (navigator.onLine) {
+          textNode.textContent = "Welcome to HGT URL Shortener. You can access and shorten your link as anyhow you want. Operational matrix online. 🚀";
+        } else {
+          textNode.textContent = "⚠️ Working Offline Mode. Local stored instances are operational. Changes sync once connection is restored.";
+        }
+      };
+      window.addEventListener('online', updateMarqueeBannerText);
+      window.addEventListener('offline', updateMarqueeBannerText);
+      updateMarqueeBannerText();
+    }
+
+    function showBannerAlert(messageText) {
+      const alertNode = document.createElement('div');
+      alertNode.className = 'banner-toast';
+      alertNode.innerText = messageText;
+      document.body.appendChild(alertNode);
       setTimeout(() => {
-        el.style.animation = 'slide-in-toast 0.25s ease-out reverse forwards';
-        setTimeout(() => el.remove(), 250);
+        alertNode.style.animation = 'slide-in-toast 0.25s ease-out reverse forwards';
+        setTimeout(() => alertNode.remove(), 250);
       }, 4000);
     }
 
-    // ============================================================
-    // NAVIGATION
-    // ============================================================
-    function switchView(viewId) {
-      [viewAuth, viewHome, viewMyurl].forEach(v => v.classList.add('hidden'));
-      
-      if (!currentActiveUser) {
-        viewAuth.classList.remove('hidden');
-        bottomNav.classList.add('hidden');
-        // Hide sign out button when not logged in
-        drawerLogoutBtn.classList.add('hidden');
-        return;
-      }
-      
-      // Show sign out button when logged in
-      drawerLogoutBtn.classList.remove('hidden');
-      
-      document.getElementById(viewId).classList.remove('hidden');
-      bottomNav.classList.remove('hidden');
-      
-      bottomNav.querySelectorAll('.nav-tab-item').forEach(b => b.classList.remove('active'));
-      const active = bottomNav.querySelector(`[data-view="${viewId}"]`);
-      if (active) active.classList.add('active');
-      
-      if (viewId === 'view-myurl') syncLinks();
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('HGT Cache Operations Context Verified:', reg.scope))
+        .catch(err => console.error('HGT Context Allocation Error:', err));
     }
 
-    document.querySelectorAll('.nav-tab-item').forEach(tab => {
-      tab.addEventListener('click', () => switchView(tab.dataset.view));
+    let appVisibilityTrackerInstance = null;
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        appVisibilityTrackerInstance = setTimeout(() => {
+          triggerBackgroundEngagementPrompt();
+        }, 300000); 
+      } else {
+        if(appVisibilityTrackerInstance) clearTimeout(appVisibilityTrackerInstance);
+      }
     });
 
-    // ============================================================
-    // GOOGLE OAUTH
-    // ============================================================
-    function initGoogleOAuth() {
-      if (typeof google === 'undefined') {
-        console.warn('Google API not loaded, retrying...');
-        setTimeout(initGoogleOAuth, 1000);
-        return;
-      }
-
-      google.accounts.id.initialize({
-        client_id: CLIENT_ID,
-        callback: handleGoogleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
-
-      google.accounts.id.renderButton(
-        authGoogleBtn,
-        { 
-          theme: 'outline', 
-          size: 'large', 
-          width: '100%',
-          text: 'continue_with',
-          shape: 'rectangular',
-          logo_alignment: 'center'
-        }
-      );
-      console.log('✅ Google OAuth initialized with Client ID:', CLIENT_ID);
-    }
-
-    function handleGoogleCredentialResponse(response) {
-      const payload = decodeJwtResponse(response.credential);
-      console.log('✅ Google user:', payload.email);
-
-      showLoading('Signing in with Google...');
-
-      const userData = {
-        email: payload.email,
-        name: payload.name,
-        given_name: payload.given_name || '',
-        family_name: payload.family_name || '',
-        picture: payload.picture || '',
-        uid: payload.sub,
-        isSuspended: false,
-        suspensionExpiry: null,
-        createdAt: Timestamp.now()
-      };
-
-      const userRef = doc(db, "users", payload.sub);
-      getDoc(userRef).then(snap => {
-        if (!snap.exists()) {
-          return setDoc(userRef, userData);
-        }
-        return updateDoc(userRef, { 
-          email: payload.email,
-          name: payload.name,
-          picture: payload.picture
+    function triggerBackgroundEngagementPrompt() {
+      if (Notification.permission === 'granted' && currentActiveUser) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification('HGT URL Shortener 🌐', {
+            body: 'Hello, are you excited of going back to the HGT URL shortener?',
+            icon: 'https://cdn-icons-png.flaticon.com/512/3233/3233077.png'
+          });
         });
-      }).then(() => {
-        currentActiveUser = {
-          uid: payload.sub,
-          email: payload.email,
-          name: payload.name,
-          picture: payload.picture
-        };
-        updateUserUI();
-        hideLoading();
-        showBanner(`Welcome ${payload.given_name || 'User'}! 🎉`);
-        switchView('view-home');
-        checkAndShowRating();
-      }).catch(err => {
-        console.error('❌ Firestore error:', err);
-        hideLoading();
-        showBanner('Authentication error. Please try again.');
-      });
+      }
     }
 
-    function decodeJwtResponse(token) {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
-      );
-      return JSON.parse(jsonPayload);
-    }
-
-    // ============================================================
-    // EMAIL/PASSWORD AUTH
-    // ============================================================
-    authSubmit.addEventListener('click', async () => {
-      const email = authEmail.value.trim();
-      const password = authPassword.value;
-      const firstname = authFirstname.value.trim();
-      const lastname = authLastname.value.trim();
-      const confirm = authConfirm.value;
-
-      if (!email || !password) {
-        showBanner('Please fill in all required fields.');
-        return;
-      }
-
-      if (currentAuthMode === "SIGNUP") {
-        if (password !== confirm) {
-          showBanner('Passwords do not match!');
-          return;
-        }
-        if (password.length < 8) {
-          showBanner('Password must be at least 8 characters.');
-          return;
-        }
-        if (!firstname || !lastname) {
-          showBanner('Please enter your full name.');
-          return;
-        }
-      }
-
-      showLoading(currentAuthMode === "SIGNUP" ? 'Creating your account...' : 'Signing you in...');
-
-      try {
-        const userId = btoa(email + Date.now()).replace(/[^a-zA-Z0-9]/g, '');
-        const userRef = doc(db, "users", userId);
-        const snap = await getDoc(userRef);
-
-        if (currentAuthMode === "SIGNUP") {
-          if (snap.exists()) {
-            hideLoading();
-            showBanner('Account already exists. Please login.');
-            return;
+    function toggleNotificationChannelPermission(demandState) {
+      if (demandState) {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            showBannerAlert('System Alert Notification processing configurations active! ✅');
+            navigator.serviceWorker.ready.then(reg => {
+              reg.showNotification('HGT URL Shortener', {
+                body: 'Welcome to HGT URL shortener! You can access and shorten your link as anyhow you want.',
+                icon: 'https://cdn-icons-png.flaticon.com/512/3233/3233077.png'
+              });
+            });
+          } else {
+            showBannerAlert('Notification configurations access rejected by context host.');
           }
-          
-          const userData = {
-            email: email,
-            name: firstname + ' ' + lastname,
-            given_name: firstname,
-            family_name: lastname,
-            uid: userId,
+        });
+      } else {
+        showBannerAlert('System notifications channels silent profiles configured locally.');
+      }
+    }
+
+    function triggerPWAInstallationWorkflow() {
+      if (deferredPWAInstallPrompt) {
+        deferredPWAInstallPrompt.prompt();
+        deferredPWAInstallPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            document.getElementById('install-pwa-btn').classList.add('hidden');
+          }
+          deferredPWAInstallPrompt = null;
+        });
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const userSnapshot = await getDoc(userDocRef);
+        
+        if (userSnapshot.exists()) {
+          const profileData = userSnapshot.data();
+          if (profileData.isSuspended === true) {
+            const suspensionEnd = profileData.suspensionExpiry ? profileData.suspensionExpiry.toMillis() : 0;
+            if (Date.now() < suspensionEnd) {
+              const expirationTimeMsg = new Date(suspensionEnd).toLocaleString();
+              alert(`Your HGT Workspace Account is suspended from link actions until: ${expirationTimeMsg}`);
+              await signOut(auth);
+              window.location.reload();
+              return;
+            } else {
+              await updateDoc(userDocRef, { isSuspended: false });
+            }
+          }
+        } else {
+          await setDoc(userDocRef, {
+            email: user.email,
+            uid: user.uid,
             isSuspended: false,
             suspensionExpiry: null,
-            createdAt: Timestamp.now(),
-            passwordHash: btoa(password + 'hgt-salt')
-          };
-          
-          await setDoc(userRef, userData);
-          currentActiveUser = {
-            uid: userId,
-            email: email,
-            name: firstname + ' ' + lastname
-          };
-          updateUserUI();
-          hideLoading();
-          showBanner('Account created successfully! 🎉');
-          switchView('view-home');
-          setTimeout(() => checkAndShowRating(), 1500);
-          
-        } else {
-          if (!snap.exists()) {
-            hideLoading();
-            showBanner('Account not found. Please sign up.');
-            return;
-          }
-          
-          const userData = snap.data();
-          const hashedPassword = btoa(password + 'hgt-salt');
-          if (userData.passwordHash !== hashedPassword) {
-            hideLoading();
-            showBanner('Invalid password. Please try again.');
-            return;
-          }
-          
-          if (userData.isSuspended) {
-            hideLoading();
-            showBanner('Account is suspended. Contact support.');
-            return;
-          }
-          
-          currentActiveUser = {
-            uid: userId,
-            email: userData.email,
-            name: userData.name
-          };
-          updateUserUI();
-          hideLoading();
-          showBanner('Welcome back! 👋');
-          switchView('view-home');
-          checkAndShowRating();
+            createdAt: Timestamp.now()
+          });
+          setTimeout(() => toggleNotificationChannelPermission(true), 1500);
         }
-        
-        authPassword.value = '';
-        authConfirm.value = '';
-        
-      } catch (err) {
-        console.error(err);
-        hideLoading();
-        showBanner('Error: ' + err.message);
-      }
-    });
 
-    // ============================================================
-    // GOOGLE BUTTON FALLBACK
-    // ============================================================
-    authGoogleBtn.addEventListener('click', () => {
-      if (typeof google !== 'undefined' && google.accounts) {
-        return;
-      }
-      showBanner('Google Sign-In is loading. Please try again.');
-      initGoogleOAuth();
-    });
+        currentActiveUser = user;
+        document.getElementById('drawer-user-identity').innerText = `Active Session: ${user.email}`;
+        
+        if (currentAuthMode === "SIGNUP") {
+          showBannerAlert("Welcome to HGT URL shortener. You can access and shorten your link as anyhow you want.");
+        } else {
+          showBannerAlert(`Welcome back! 👋 Enjoy access.`);
+        }
 
-    // ============================================================
-    // UPDATE UI
-    // ============================================================
-    function updateUserUI() {
-      if (currentActiveUser) {
-        const displayName = currentActiveUser.name || currentActiveUser.email;
-        headerUser.textContent = displayName;
-        drawerUserName.textContent = displayName;
-        drawerUserEmail.textContent = currentActiveUser.email;
-        // Show sign out button
-        drawerLogoutBtn.classList.remove('hidden');
+        switchActiveViewPanel('view-home');
       } else {
-        headerUser.textContent = '';
-        drawerUserName.textContent = '';
-        drawerUserEmail.textContent = '';
-        // Hide sign out button
-        drawerLogoutBtn.classList.add('hidden');
+        currentActiveUser = null;
+        document.getElementById('drawer-user-identity').innerText = '';
+        switchActiveViewPanel('view-auth');
+      }
+    });
+
+    function toggleAuthViewMode() {
+      const submitBtn = document.getElementById('auth-submit-primary');
+      const toggleBtn = document.getElementById('auth-toggle-mode-btn');
+      if (currentAuthMode === "LOGIN") {
+        currentAuthMode = "SIGNUP";
+        submitBtn.innerText = "Register Account";
+        toggleBtn.innerText = "Switch to Login Profile";
+      } else {
+        currentAuthMode = "LOGIN";
+        submitBtn.innerText = "Continue";
+        toggleBtn.innerText = "Switch to Sign Up";
       }
     }
 
-    // ============================================================
-    // LOGOUT
-    // ============================================================
-    drawerLogoutBtn.addEventListener('click', () => {
-      currentActiveUser = null;
-      updateUserUI();
-      drawer.classList.remove('open');
-      localStorage.removeItem('hgt-user');
-      switchView('view-auth');
-      showBanner('You have been signed out.');
-    });
+    async function executeEmailPasswordAuthPipeline() {
+      const emailVal = document.getElementById('auth-email').value.trim();
+      const passVal = document.getElementById('auth-password').value;
 
-    // ============================================================
-    // URL SHORTENING
-    // ============================================================
-    async function validateQuota(userId) {
+      if (!emailVal || !passVal) {
+        showBannerAlert('Verify parameters input field credentials values.');
+        return;
+      }
+
+      try {
+        if (currentAuthMode === "SIGNUP") {
+          await createUserWithEmailAndPassword(auth, emailVal, passVal);
+        } else {
+          await signInWithEmailAndPassword(auth, emailVal, passVal);
+        }
+      } catch (error) {
+        console.error(error);
+        showBannerAlert(`Authentication Pipeline Exception: ${error.message}`);
+      }
+    }
+
+    async function executeGoogleOneTapPipeline() {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error(error);
+        showBannerAlert(`Google Identity Stream Failure: ${error.message}`);
+      }
+    }
+
+    async function executeSignOutPipeline() {
+      try {
+        await signOut(auth);
+        toggleDrawerContext();
+      } catch (error) {
+        showBannerAlert('Sign out lifecycle intercept exception.');
+      }
+    }
+
+    async function validateUserQuotaPermissions(userId) {
       const now = Date.now();
-      const quotaRef = doc(db, "users", userId, "quotas", "usage");
+      const quotaDocRef = doc(db, "users", userId, "quotas", "usage");
       
       let quotaPassed = true;
-      let reason = "";
+      let exceptionReason = "";
 
       await runTransaction(db, async (transaction) => {
-        const snap = await transaction.get(quotaRef);
+        const quotaSnapshot = await transaction.get(quotaDocRef);
+        
         const INTERVAL_MIN = 2 * 60 * 1000;
         const INTERVAL_HOUR = 60 * 60 * 1000;
         const INTERVAL_DAY = 24 * 60 * 60 * 1000;
 
-        if (!snap.exists()) {
-          transaction.set(quotaRef, {
+        if (!quotaSnapshot.exists()) {
+          transaction.set(quotaDocRef, {
             lastGenerated: Timestamp.fromMillis(now),
             hourlyWindowStart: Timestamp.fromMillis(now),
             hourlyCount: 1,
@@ -1199,110 +893,122 @@
           return;
         }
 
-        const data = snap.data();
-        const lastGen = data.lastGenerated.toMillis();
-        const hourlyStart = data.hourlyWindowStart.toMillis();
-        const dailyStart = data.dailyWindowStart.toMillis();
-        let hCount = data.hourlyCount || 0;
-        let dCount = data.dailyCount || 0;
+        const qData = quotaSnapshot.data();
+        
+        const lastGenTime = qData.lastGenerated.toMillis();
+        const hourlyStart = qData.hourlyWindowStart.toMillis();
+        const dailyStart = qData.dailyWindowStart.toMillis();
+        
+        let currentHourlyCount = qData.hourlyCount;
+        let currentDailyCount = qData.dailyCount;
 
-        if (now - lastGen < INTERVAL_MIN) {
+        if (now - lastGenTime < INTERVAL_MIN) {
           quotaPassed = false;
-          reason = `Please wait ${Math.ceil((INTERVAL_MIN - (now - lastGen)) / 1000)}s before generating another link.`;
+          const remainingSeconds = Math.ceil((INTERVAL_MIN - (now - lastGenTime)) / 1000);
+          exceptionReason = `Rate Limit Enforced: Please wait ${remainingSeconds}s before generating next link node resource.`;
           return;
         }
 
         if (now - hourlyStart < INTERVAL_HOUR) {
-          if (hCount >= 7) {
+          if (currentHourlyCount >= 7) {
             quotaPassed = false;
-            reason = `Hourly limit reached (7/hour). Try again in ${Math.ceil((INTERVAL_HOUR - (now - hourlyStart)) / 60000)} minutes.`;
+            const remainingMinutes = Math.ceil((INTERVAL_HOUR - (now - hourlyStart)) / (60 * 1000));
+            exceptionReason = `Hourly Allocation Exhausted: Wait ${remainingMinutes}m for limit reset processing windows.`;
             return;
+          } else {
+            currentHourlyCount += 1;
           }
-          hCount += 1;
         } else {
-          hCount = 1;
-          data.hourlyWindowStart = Timestamp.fromMillis(now);
+          currentHourlyCount = 1;
+          qData.hourlyWindowStart = Timestamp.fromMillis(now);
         }
 
         if (now - dailyStart < INTERVAL_DAY) {
-          if (dCount >= 10) {
+          if (currentDailyCount >= 10) {
             quotaPassed = false;
-            reason = `Daily limit reached (10/day). Try again tomorrow.`;
+            const remainingHours = Math.ceil((INTERVAL_DAY - (now - dailyStart)) / (60 * 60 * 1000));
+            exceptionReason = `Daily Limit Exceeded: Your generation quota window is locked for the next ${remainingHours} hours. Please wait until tomorrow.`;
             return;
+          } else {
+            currentDailyCount += 1;
           }
-          dCount += 1;
         } else {
-          dCount = 1;
-          data.dailyWindowStart = Timestamp.fromMillis(now);
+          currentDailyCount = 1;
+          qData.dailyWindowStart = Timestamp.fromMillis(now);
         }
 
-        transaction.update(quotaRef, {
+        transaction.update(quotaDocRef, {
           lastGenerated: Timestamp.fromMillis(now),
-          hourlyWindowStart: data.hourlyWindowStart,
-          hourlyCount: hCount,
-          dailyWindowStart: data.dailyWindowStart,
-          dailyCount: dCount
+          hourlyWindowStart: qData.hourlyWindowStart,
+          hourlyCount: currentHourlyCount,
+          dailyWindowStart: qData.dailyWindowStart,
+          dailyCount: currentDailyCount
         });
       });
 
-      if (!quotaPassed) throw new Error(reason);
+      if (!quotaPassed) {
+        throw new Error(exceptionReason);
+      }
     }
 
-    shortenBtn.addEventListener('click', async () => {
-      if (!currentActiveUser) {
-        showBanner('Please sign in first.');
+    async function executeShortenGenerationSequence() {
+      if (!currentActiveUser) return;
+
+      const targetUrl = document.getElementById('input-target-url').value.trim();
+      const aliasName = document.getElementById('input-custom-alias').value.trim().replace(/[^a-zA-Z0-9-_]/g, '');
+
+      if (!targetUrl || !aliasName) {
+        showBannerAlert('Input destinations values and verification names correctly.');
         return;
       }
 
-      const url = inputUrl.value.trim();
-      const alias = inputAlias.value.trim().replace(/[^a-zA-Z0-9-_]/g, '');
-
-      if (!url || !alias) {
-        showBanner('Please enter both URL and alias.');
-        return;
-      }
+      const loader = document.getElementById('engine-loader');
+      const shortenBtn = document.getElementById('engine-shorten-btn');
 
       loader.classList.remove('hidden');
       shortenBtn.disabled = true;
-      loaderStatus.textContent = 'Validating quota...';
 
       try {
-        await validateQuota(currentActiveUser.uid);
+        document.getElementById('loader-status-text').innerText = "Validating generation profile allocations...";
+        await validateUserQuotaPermissions(currentActiveUser.uid);
 
-        loaderStatus.textContent = 'Creating short URL...';
-        const urlRef = doc(db, "urls", alias);
-        const snap = await getDoc(urlRef);
+        document.getElementById('loader-status-text').innerText = "Registering short URL code routes...";
+        
+        const urlDocumentRef = doc(db, "urls", aliasName);
+        const urlSnapshot = await getDoc(urlDocumentRef);
 
-        if (snap.exists()) {
-          throw new Error('Alias already taken. Please choose another.');
+        if (urlSnapshot.exists()) {
+          throw new Error("Target Custom Identifier name identifier route matching elements collision detected.");
         }
 
-        await setDoc(urlRef, {
-          originalUrl: url,
+        const linkAssetPayload = {
+          originalUrl: targetUrl,
           ownerUid: currentActiveUser.uid,
-          ownerEmail: currentActiveUser.email,
-          isBlocked: false,
+          isBlocked: false, 
           createdAt: Timestamp.now()
-        });
+        };
+
+        await setDoc(urlDocumentRef, linkAssetPayload);
 
         loader.classList.add('hidden');
         shortenBtn.disabled = false;
 
-        // Generate short URL - CLEAN FORMAT
-        const shortUrl = `https://${DOMAIN}/${alias}`;
-        triggerSuccess(shortUrl, alias);
+        triggerImmersiveSuccessCelebrationModal(aliasName);
 
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error(error);
         loader.classList.add('hidden');
         shortenBtn.disabled = false;
-        showBanner(err.message);
+        alert(error.message);
       }
-    });
+    }
 
-    function triggerSuccess(shortUrl, alias) {
-      modalLink.textContent = shortUrl;
-      successModal.classList.remove('hidden');
+    function triggerImmersiveSuccessCelebrationModal(aliasPathKey) {
+      // FIX: Splits base location URLs to safely isolate folders and support your repository name context explicitly
+      const derivedUrlString = window.location.href.split('?')[0] + `?id=${aliasPathKey}`;
+      
+      document.getElementById('modal-short-link-output').innerText = derivedUrlString;
+      document.getElementById('success-intercept-modal').classList.remove('hidden');
 
       if (typeof confetti !== 'undefined') {
         confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
@@ -1311,408 +1017,155 @@
       if (Notification.permission === 'granted') {
         navigator.serviceWorker.ready.then(reg => {
           reg.showNotification('HGT URL Shortener 🚀', {
-            body: `Your link is live: ${alias}`,
+            body: `Congratulations! Your link is now live at ${aliasPathKey}`,
             icon: 'https://cdn-icons-png.flaticon.com/512/3233/3233077.png',
-            data: { url: shortUrl }
+            data: { url: derivedUrlString }
           });
         });
       }
 
-      setTimeout(() => {
-        checkAndShowRating();
-      }, 1000);
-    }
-
-    modalCopy.addEventListener('click', () => {
-      navigator.clipboard.writeText(modalLink.textContent).then(() => {
-        showBanner('Link copied to clipboard! 📋');
-      });
-    });
-
-    modalClose.addEventListener('click', () => {
-      successModal.classList.add('hidden');
-    });
-
-    // ============================================================
-    // RATING SYSTEM
-    // ============================================================
-    function checkAndShowRating() {
-      const rated = localStorage.getItem('hgt-rated');
-      const skipped = localStorage.getItem('hgt-rating-skipped');
-      
-      if (rated === 'true') return;
-      
-      const lastSkip = localStorage.getItem('hgt-rating-last-skip');
-      if (lastSkip) {
-        const hoursSince = (Date.now() - parseInt(lastSkip)) / (1000 * 60 * 60);
-        if (hoursSince < 6) return;
-      }
-      
-      resetRating();
-      ratingModal.classList.remove('hidden');
-    }
-
-    function resetRating() {
-      selectedRating = 0;
-      stars.forEach(s => {
-        s.classList.remove('active');
-        s.textContent = '☆';
-      });
-      ratingMessage.textContent = 'Tap a star to rate';
-      ratingRateBtn.disabled = true;
-    }
-
-    stars.forEach(star => {
-      star.addEventListener('mouseenter', () => {
-        const val = parseInt(star.dataset.value);
-        stars.forEach(s => {
-          const sVal = parseInt(s.dataset.value);
-          if (sVal <= val) {
-            s.classList.add('active');
-            s.textContent = '⭐';
-          } else {
-            s.classList.remove('active');
-            s.textContent = '☆';
-          }
+      document.getElementById('modal-copy-action-btn').onclick = () => {
+        navigator.clipboard.writeText(derivedUrlString).then(() => {
+          showBannerAlert('Link payload copied into clipboard! 📋');
         });
-      });
+      };
+    }
 
-      star.addEventListener('mouseleave', () => {
-        if (selectedRating === 0) {
-          stars.forEach(s => {
-            s.classList.remove('active');
-            s.textContent = '☆';
-          });
-        } else {
-          stars.forEach(s => {
-            const sVal = parseInt(s.dataset.value);
-            if (sVal <= selectedRating) {
-              s.classList.add('active');
-              s.textContent = '⭐';
-            } else {
-              s.classList.remove('active');
-              s.textContent = '☆';
-            }
-          });
-        }
-      });
+    async function synchronizeWorkspaceLinksStream() {
+      const container = document.getElementById('workspace-links-stream');
+      container.innerHTML = '<p style="font-size:0.9rem; text-align:center; color:var(--text-muted);">Fetching links cache data pipeline...</p>';
 
-      star.addEventListener('click', () => {
-        selectedRating = parseInt(star.dataset.value);
-        stars.forEach(s => {
-          const sVal = parseInt(s.dataset.value);
-          if (sVal <= selectedRating) {
-            s.classList.add('active');
-            s.textContent = '⭐';
-          } else {
-            s.classList.remove('active');
-            s.textContent = '☆';
-          }
-        });
-        
-        const messages = {
-          1: 'Poor - We\'ll do better! 😞',
-          2: 'Fair - Room for improvement',
-          3: 'Good - Thanks for your feedback!',
-          4: 'Very Good - Almost perfect!',
-          5: 'Excellent - Thank you so much! 🎉'
-        };
-        ratingMessage.textContent = messages[selectedRating] || 'Tap a star to rate';
-        ratingRateBtn.disabled = false;
-      });
-    });
-
-    ratingRateBtn.addEventListener('click', () => {
-      if (selectedRating === 0) return;
-      localStorage.setItem('hgt-rated', 'true');
-      localStorage.removeItem('hgt-rating-skipped');
-      ratingModal.classList.add('hidden');
-      showBanner('Thank you for your rating! ⭐');
-      window.open(REVIEW_URL, '_blank');
-    });
-
-    ratingLaterBtn.addEventListener('click', () => {
-      localStorage.setItem('hgt-rating-skipped', 'true');
-      localStorage.setItem('hgt-rating-last-skip', Date.now().toString());
-      ratingModal.classList.add('hidden');
-    });
-
-    // ============================================================
-    // SYNC LINKS
-    // ============================================================
-    async function syncLinks() {
       if (!currentActiveUser) return;
-      
-      streamContainer.innerHTML = '<p style="text-align:center;color:var(--text-muted);">Loading your links...</p>';
-      
+
       try {
-        const q = query(collection(db, "urls"), where("ownerUid", "==", currentActiveUser.uid));
-        const snap = await getDocs(q);
+        const targetQuery = query(collection(db, "urls"), where("ownerUid", "==", currentActiveUser.uid));
+        const querySnapshot = await getDocs(targetQuery);
         
-        if (snap.empty) {
-          streamContainer.innerHTML = '<p style="text-align:center;color:var(--text-muted);">No links yet. Create your first one!</p>';
+        container.innerHTML = '';
+        
+        if(querySnapshot.empty) {
+          container.innerHTML = '<p style="font-size:0.9rem; text-align:center; color:var(--text-muted);">No operational routing links detected under current authorization context token profile.</p>';
           return;
         }
-        
-        streamContainer.innerHTML = '';
-        snap.forEach(doc => {
-          const data = doc.data();
-          const id = doc.id;
-          const shortUrl = `https://${DOMAIN}/${id}`;
+
+        querySnapshot.forEach((linkDoc) => {
+          const data = linkDoc.data();
+          const documentId = linkDoc.id;
           
-          const div = document.createElement('div');
-          div.className = 'url-item-row';
-          div.innerHTML = `
-            <div class="alias">🔗 ${id}</div>
-            <div class="links-data" style="color:var(--accent);font-weight:500;">${shortUrl}</div>
-            <div class="links-data" style="color:var(--text-muted);opacity:0.8;">Dest: ${data.originalUrl}</div>
+          // FIX: Appends short IDs directly onto active runtime path configuration matrices seamlessly
+          const computedUrl = window.location.href.split('?')[0] + `?id=${documentId}`;
+
+          const card = document.createElement('div');
+          card.className = 'url-item-row';
+          card.innerHTML = `
+            <div class="alias">🔗 ${documentId}</div>
+            <div class="links-data" style="color:var(--accent); font-weight:500;">${computedUrl}</div>
+            <div class="links-data" style="color:var(--text-muted); opacity:0.8;">Dest: ${data.originalUrl}</div>
             <div class="actions-group">
-              <button class="action-inline-btn copy-btn" data-url="${shortUrl}">Copy</button>
-              <button class="action-inline-btn danger delete-btn" data-id="${id}">Delete</button>
+              <button class="action-inline-btn copy-shortcut-trigger" data-url="${computedUrl}">Copy</button>
+              <button class="action-inline-btn danger delete-shortcut-trigger" data-id="${documentId}">Delete</button>
             </div>
           `;
-          streamContainer.appendChild(div);
+          container.appendChild(card);
         });
-        
-        streamContainer.querySelectorAll('.copy-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            navigator.clipboard.writeText(btn.dataset.url);
-            showBanner('Copied! 📋');
-          });
+
+        container.querySelectorAll('.copy-shortcut-trigger').forEach(btn => {
+          btn.onclick = (e) => {
+            navigator.clipboard.writeText(e.target.getAttribute('data-url'));
+            showBannerAlert('Copied context node route parameters! 📋');
+          };
         });
-        
-        streamContainer.querySelectorAll('.delete-btn').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            const id = btn.dataset.id;
-            if (confirm(`Delete "${id}"?`)) {
-              await deleteDoc(doc(db, "urls", id));
-              syncLinks();
-              showBanner('Link deleted.');
+
+        container.querySelectorAll('.delete-shortcut-trigger').forEach(btn => {
+          btn.onclick = async (e) => {
+            const idTarget = e.target.getAttribute('data-id');
+            if (confirm(`Confirm permanent erasure mapping execution operations of short url channel route identity index: ${idTarget}`)) {
+              await deleteDoc(doc(db, "urls", idTarget));
+              synchronizeWorkspaceLinksStream();
+              showBannerAlert('Resource deletion request operations cleared successfully.');
             }
-          });
+          };
         });
-        
+
       } catch (err) {
-        streamContainer.innerHTML = `<p style="color:#ef4444;">Error: ${err.message}</p>`;
+        container.innerHTML = `<p style="font-size:0.85rem; color:#ef4444;">Workspace links stream synchronization failure error trace exception block: ${err.message}</p>`;
       }
     }
 
-    // ============================================================
-    // PWA INSTALL
-    // ============================================================
-    installBtn.addEventListener('click', () => {
-      if (deferredPWAInstallPrompt) {
-        deferredPWAInstallPrompt.prompt();
-        deferredPWAInstallPrompt.userChoice.then(() => {
-          installBtn.classList.add('hidden');
-          deferredPWAInstallPrompt = null;
-        });
-      }
-    });
+    async function checkShortLinkRoutingResolver() {
+      const urlParametersParser = new URLSearchParams(window.location.search);
+      const routeIdentifierId = urlParametersParser.get('id');
 
-    // ============================================================
-    // NOTIFICATIONS
-    // ============================================================
-    notifEnable.addEventListener('click', () => {
-      Notification.requestPermission().then(perm => {
-        if (perm === 'granted') {
-          showBanner('Notifications enabled! ✅');
-          navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification('HGT URL Shortener', {
-              body: 'You will now receive updates!',
-              icon: 'https://cdn-icons-png.flaticon.com/512/3233/3233077.png'
-            });
-          });
-        } else {
-          showBanner('Notification permission denied.');
+      if (routeIdentifierId) {
+        try {
+          document.body.innerHTML = `
+            <div style="background:#050a14; color:#ffffff; width:100vw; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
+              <div class="radial-progress-container">
+                <svg class="circular-svg"><circle class="circular-progress-bar" cx="40" cy="40" r="36"></circle></svg>
+              </div>
+              <h2 style="margin-top:20px; font-weight:400; letter-spacing:1px;">HGT SECURE ROUTING GATEWAY</h2>
+              <p style="color:#9ca3af; font-size:0.85rem; margin-top:8px;">Decrypting endpoint tracking token metrics layers configurations blocks...</p>
+            </div>
+          `;
+
+          const targetDocRef = doc(db, "urls", routeIdentifierId);
+          const documentSnapshotInstance = await getDoc(targetDocRef);
+
+          if (documentSnapshotInstance.exists()) {
+            const routeData = documentSnapshotInstance.data();
+
+            if (routeData.isBlocked === true) {
+              window.location.href = "./404.html";
+              return;
+            }
+
+            let evaluatedDestinationUrl = routeData.originalUrl;
+            if (!/^https?:\/\//i.test(evaluatedDestinationUrl)) {
+              evaluatedDestinationUrl = 'https://' + evaluatedDestinationUrl;
+            }
+            window.location.replace(evaluatedDestinationUrl);
+          } else {
+            window.location.href = "./404.html";
+          }
+        } catch (err) {
+          console.error(err);
+          window.location.href = "./404.html";
         }
-      });
-    });
+      }
+    }
 
-    notifDisable.addEventListener('click', () => {
-      showBanner('Notifications disabled. Manage in browser settings.');
-    });
-
-    // ============================================================
-    // GDPR PURGE
-    // ============================================================
-    gdprCheck.addEventListener('change', (e) => {
-      gdprBtn.disabled = !e.target.checked;
-    });
-
-    gdprBtn.addEventListener('click', async () => {
+    async function executeGDPRDataPurgeDestructionPipeline() {
       if (!currentActiveUser) return;
-      if (!confirm('DELETE ALL DATA? This is irreversible!')) return;
       
-      try {
-        showLoading('Purging all data...');
-        const q = query(collection(db, "urls"), where("ownerUid", "==", currentActiveUser.uid));
-        const snap = await getDocs(q);
-        for (const docSnap of snap.docs) {
-          await deleteDoc(doc(db, "urls", docSnap.id));
-        }
-        await deleteDoc(doc(db, "users", currentActiveUser.uid));
-        await deleteDoc(doc(db, "users", currentActiveUser.uid, "quotas", "usage"));
-        
-        localStorage.clear();
-        currentActiveUser = null;
-        updateUserUI();
-        hideLoading();
-        switchView('view-auth');
-        showBanner('Account and data purged successfully.');
-      } catch (err) {
-        hideLoading();
-        showBanner('Error: ' + err.message);
+      const targetPurgeIdentityUser = currentActiveUser;
+      if (!confirm("CRITICAL ACCREDITATION WARNING: This operation executes non-reversible cascade deletions erasing all matching custom shortened identifiers mapping profiles and user authorization accounts indexes. Proceed?")) {
+        return;
       }
-    });
 
-    // ============================================================
-    // MARQUEE / OFFLINE
-    // ============================================================
-    const marqueeText = document.getElementById('marquee-text-node');
-    window.addEventListener('online', () => {
-      marqueeText.textContent = 'Welcome to HGT URL Shortener. Access and shorten your link as anyhow you want. Operational matrix online. 🚀';
-    });
-    window.addEventListener('offline', () => {
-      marqueeText.textContent = '⚠️ Working Offline Mode. Local stored instances are operational. Changes sync once connection is restored.';
-    });
+      try {
+        toggleDrawerContext();
+        document.body.innerHTML = '<div style="background:#050a14; color:#ffffff; width:100vw; height:100vh; display:flex; align-items:center; justify-content:center;"><h2>Processing GDPR Right to be Forgotten data deletion cascades operations nodes...</h2></div>';
+        
+        const targetUserLinksQuery = query(collection(db, "urls"), where("ownerUid", "==", targetPurgeIdentityUser.uid));
+        const targetUserLinksSnapshot = await getDocs(targetUserLinksQuery);
+        
+        for (const linkDoc of targetUserLinksSnapshot.docs) {
+          await deleteDoc(doc(db, "urls", linkDoc.id));
+        }
 
-    // ============================================================
-    // SHORT URL REDIRECT HANDLER - FIXED
-    // ============================================================
-    async function handleRedirect() {
-        const path = window.location.pathname;
-        const params = new URLSearchParams(window.location.search);
-        const idParam = params.get('id');
-        
-        console.log('🔍 Redirect check:', { path, idParam, full: window.location.href });
-        
-        // Check for ?id= parameter first (legacy format)
-        if (idParam) {
-            console.log('📌 Found ?id= parameter:', idParam);
-            try {
-                const ref = doc(db, "urls", idParam);
-                const snap = await getDoc(ref);
-                
-                if (snap.exists()) {
-                    const data = snap.data();
-                    console.log('✅ Found URL:', data);
-                    
-                    if (data.isBlocked) {
-                        console.log('⛔ URL is blocked');
-                        window.location.href = "./404.html";
-                        return;
-                    }
-                    
-                    let dest = data.originalUrl;
-                    if (!/^https?:\/\//i.test(dest)) {
-                        dest = 'https://' + dest;
-                    }
-                    console.log('🔄 Redirecting to:', dest);
-                    window.location.replace(dest);
-                    return;
-                } else {
-                    console.log('❌ Alias not found:', idParam);
-                    window.location.href = "./404.html";
-                    return;
-                }
-            } catch (err) {
-                console.error('❌ Redirect error:', err);
-                window.location.href = "./404.html";
-                return;
-            }
-        }
-        
-        // Check for clean URL: /alias (e.g., /summer-promo)
-        if (path && path.length > 1 && path !== '/' && path !== '/index.html' && !path.includes('.')) {
-            const alias = path.replace('/', '');
-            console.log('📌 Found clean URL alias:', alias);
-            
-            // Don't try to redirect if it's the auth page or other system paths
-            if (alias === '404' || alias === 'manifest' || alias === 'sw') {
-                return;
-            }
-            
-            try {
-                const ref = doc(db, "urls", alias);
-                const snap = await getDoc(ref);
-                
-                if (snap.exists()) {
-                    const data = snap.data();
-                    console.log('✅ Found URL:', data);
-                    
-                    if (data.isBlocked) {
-                        console.log('⛔ URL is blocked');
-                        window.location.href = "./404.html";
-                        return;
-                    }
-                    
-                    let dest = data.originalUrl;
-                    if (!/^https?:\/\//i.test(dest)) {
-                        dest = 'https://' + dest;
-                    }
-                    console.log('🔄 Redirecting to:', dest);
-                    window.location.replace(dest);
-                    return;
-                } else {
-                    console.log('❌ Alias not found:', alias);
-                    // Show 404 for invalid alias
-                    window.location.href = "./404.html";
-                    return;
-                }
-            } catch (err) {
-                console.error('❌ Redirect error:', err);
-                window.location.href = "./404.html";
-                return;
-            }
-        }
+        await deleteDoc(doc(db, "users", targetPurgeIdentityUser.uid, "quotas", "usage"));
+        await deleteDoc(doc(db, "users", targetPurgeIdentityUser.uid));
+        await deleteUser(targetPurgeIdentityUser);
+
+        alert("GDPR Right to be Forgotten account deletion cascade complete. Session references deleted.");
+        window.location.reload();
+
+      } catch (error) {
+        console.error(error);
+        alert(`GDPR Compliance Operation Intercept Failure: ${error.message}. Please sign out, re-authenticate your current login state, and attempt verification again.`);
+        window.location.reload();
+      }
     }
-
-    // ============================================================
-    // INIT
-    // ============================================================
-    document.addEventListener('DOMContentLoaded', async () => {
-        console.log('🚀 HGT URL Shortener loading...');
-        console.log(`📡 Domain: ${DOMAIN}`);
-        console.log(`🔑 Client ID: ${CLIENT_ID}`);
-        
-        // Check for redirect FIRST
-        await handleRedirect();
-        
-        // Init Google OAuth
-        setTimeout(initGoogleOAuth, 500);
-        
-        // Check if user is already logged in
-        const savedUser = localStorage.getItem('hgt-user');
-        if (savedUser) {
-            try {
-                currentActiveUser = JSON.parse(savedUser);
-                updateUserUI();
-                switchView('view-home');
-                // Show sign out button
-                drawerLogoutBtn.classList.remove('hidden');
-                setTimeout(() => checkAndShowRating(), 2000);
-            } catch (e) {
-                localStorage.removeItem('hgt-user');
-            }
-        } else {
-            switchView('view-auth');
-            // Hide sign out button
-            drawerLogoutBtn.classList.add('hidden');
-        }
-        
-        // Save user on change
-        setInterval(() => {
-            if (currentActiveUser) {
-                localStorage.setItem('hgt-user', JSON.stringify(currentActiveUser));
-            } else {
-                localStorage.removeItem('hgt-user');
-            }
-        }, 5000);
-    });
-
-    console.log('🚀 HGT URL Shortener loaded!');
   </script>
-
 </body>
 </html>
